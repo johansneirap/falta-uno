@@ -1,0 +1,53 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-cream font-body text-brutal-black;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+}
+
+@layer components {
+  /* Contenedor mobile-first centrado */
+  .app-container {
+    @apply max-w-[480px] mx-auto min-h-screen relative;
+  }
+
+  /* Card neobrutalista base */
+  .card {
+    @apply bg-white border-2 border-black rounded-xl shadow-brutal;
+  }
+
+  /* Botón base neobrutalista */
+  .btn {
+    @apply inline-flex items-center justify-center font-display font-bold
+           border-2 border-black rounded-lg shadow-brutal
+           transition-all active:shadow-none active:translate-x-[4px] active:translate-y-[4px]
+           cursor-pointer select-none;
+  }
+
+  .btn-primary {
+    @apply btn bg-primary text-black px-4 py-3;
+  }
+
+  .btn-secondary {
+    @apply btn bg-secondary text-black px-4 py-3;
+  }
+
+  .btn-outline {
+    @apply btn bg-white text-black px-4 py-3;
+  }
+
+  /* Input neobrutalista */
+  .input {
+    @apply w-full border-2 border-black rounded-lg px-3 py-2
+           font-body bg-white focus:outline-none focus:ring-2 focus:ring-primary
+           placeholder:text-gray-400;
+  }
+}
