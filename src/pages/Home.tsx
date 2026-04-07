@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useGames } from '../hooks/useGames'
 import GameCard from '../components/game/GameCard'
 import type { Sport, Level } from '../lib/constants'
+import { LEVELS_BY_SPORT, LEVELS_GENERIC } from '../lib/constants'
 
 type SportFilter = Sport | 'todos'
 type LevelFilter = Level | 'todos'
@@ -14,17 +15,23 @@ const SPORT_TABS: { value: SportFilter; label: string }[] = [
   { value: 'basket', label: 'Básket' },
 ]
 
-const LEVEL_PILLS: { value: LevelFilter; label: string }[] = [
-  { value: 'todos', label: 'Todos' },
-  { value: 'principiante', label: 'Principiante' },
-  { value: 'intermedio', label: 'Intermedio' },
-  { value: 'avanzado', label: 'Avanzado' },
-]
-
 export default function Home() {
   const { games, loading, fetchGames } = useGames()
   const [sport, setSport] = useState<SportFilter>('todos')
   const [level, setLevel] = useState<LevelFilter>('todos')
+
+  const levelPills = [
+    { value: 'todos' as LevelFilter, label: 'Todos' },
+    ...(sport !== 'todos'
+      ? LEVELS_BY_SPORT[sport as keyof typeof LEVELS_BY_SPORT]
+      : LEVELS_GENERIC
+    ),
+  ]
+
+  function handleSportChange(value: SportFilter) {
+    setSport(value)
+    setLevel('todos')
+  }
 
   useEffect(() => {
     fetchGames({ sport, level })
@@ -44,7 +51,7 @@ export default function Home() {
           {SPORT_TABS.map(tab => (
             <button
               key={tab.value}
-              onClick={() => setSport(tab.value)}
+              onClick={() => handleSportChange(tab.value)}
               className={`flex-1 font-display text-[13px] font-semibold transition-colors
                 ${sport === tab.value
                   ? 'bg-primary text-black'
@@ -58,7 +65,7 @@ export default function Home() {
 
       {/* Level pills */}
       <div className="flex gap-2 px-5 pt-3 pb-1 overflow-x-auto scrollbar-none">
-        {LEVEL_PILLS.map(pill => (
+        {levelPills.map(pill => (
           <button
             key={pill.value}
             onClick={() => setLevel(pill.value)}

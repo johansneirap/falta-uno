@@ -26,15 +26,10 @@ export default function Login() {
   }
 
   return (
-    <div className="app-container flex flex-col bg-cream min-h-screen">
-
-      {/* Status Bar */}
-      <div className="flex items-center justify-center h-[62px] px-5">
-        <span className="font-display font-semibold text-[15px] text-brutal-black">9:41</span>
-      </div>
+    <div className="app-container flex flex-col bg-cream h-screen">
 
       {/* Content — centrado verticalmente */}
-      <div className="flex flex-col justify-center gap-8 flex-1 px-6 pb-6 pt-10">
+      <div className="flex flex-col justify-center gap-8 flex-1 px-6 pb-6 pt-6">
 
         {/* Hero */}
         <div className="flex flex-col items-center gap-2">
@@ -141,21 +136,6 @@ export default function Login() {
           Al continuar, aceptas nuestros Términos de Servicio.
         </p>
       </div>
-
-      {/* Bottom Tab Bar — inactivo en login */}
-      <div className="bg-white border-t-[2.5px] border-black px-4 pt-3 pb-7 flex justify-around">
-        {[
-          { icon: <HouseIcon />, label: 'Inicio' },
-          { icon: <PlusIcon />, label: 'Crear' },
-          { icon: <UsersIcon />, label: 'Jugadores' },
-          { icon: <UserIcon />, label: 'Perfil' },
-        ].map(({ icon, label }) => (
-          <div key={label} className="flex flex-col items-center gap-1 flex-1 opacity-40">
-            {icon}
-            <span className="font-display font-semibold text-[10px] text-brutal-black">{label}</span>
-          </div>
-        ))}
-      </div>
     </div>
   )
 }
@@ -170,39 +150,3 @@ function SendIcon() {
   )
 }
 
-function HouseIcon() {
-  return (
-    <svg width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-      <path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z" />
-      <path d="M9 21V12h6v9" />
-    </svg>
-  )
-}
-
-function PlusIcon() {
-  return (
-    <svg width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-      <circle cx="12" cy="12" r="9" />
-      <path d="M12 8v8M8 12h8" />
-    </svg>
-  )
-}
-
-function UsersIcon() {
-  return (
-    <svg width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-      <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" />
-      <circle cx="9" cy="7" r="4" />
-      <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" />
-    </svg>
-  )
-}
-
-function UserIcon() {
-  return (
-    <svg width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-      <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
-      <circle cx="12" cy="7" r="4" />
-    </svg>
-  )
-}

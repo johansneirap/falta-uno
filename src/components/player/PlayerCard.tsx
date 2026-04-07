@@ -1,19 +1,12 @@
 import Avatar from '../ui/Avatar'
 import type { Sport, Level } from '../../lib/constants'
+import { LEVEL_LABEL_MAP, LEVEL_COLOR_MAP } from '../../lib/constants'
 
 const SPORT_EMOJI: Record<string, string> = {
   padel: '🎾', futbol: '⚽', tenis: '🎾', basket: '🏀',
 }
 const SPORT_LABEL: Record<string, string> = {
   padel: 'Pádel', futbol: 'Fútbol', tenis: 'Tenis', basket: 'Básket',
-}
-const LEVEL_LABEL: Record<string, string> = {
-  principiante: 'Principiante', intermedio: 'Intermedio', avanzado: 'Avanzado',
-}
-const LEVEL_BADGE: Record<string, string> = {
-  principiante: 'bg-green-100 text-green-800',
-  intermedio: 'bg-yellow-100 text-yellow-800',
-  avanzado: 'bg-red-100 text-red-800',
 }
 
 interface PlayerCardProps {
@@ -28,7 +21,7 @@ export default function PlayerCard({ name, phone, sport, level, availabilityText
   function handleContact() {
     if (!phone) return
     const msg = encodeURIComponent(
-      `Hola ${name}! Te vi en Falta 1 buscando partido de ${SPORT_LABEL[sport]}. ¿Seguís disponible?`
+      `Hola ${name}! Te vi en Falta 1 buscando partido de ${SPORT_LABEL[sport]}. ¿Sigues disponible?`
     )
     window.open(`https://wa.me/${phone.replace(/\D/g, '')}?text=${msg}`, '_blank')
   }
@@ -39,9 +32,9 @@ export default function PlayerCard({ name, phone, sport, level, availabilityText
       <div className="flex flex-col gap-1 flex-1 min-w-0">
         <span className="font-display font-bold text-[14px] text-brutal-black">{name}</span>
         <div className="flex items-center gap-2">
-          <span className="text-[13px]">{SPORT_EMOJI[sport]}</span>
-          <span className={`text-[11px] font-display font-bold border-[1.5px] border-black rounded-full px-2 py-0.5 ${LEVEL_BADGE[level]}`}>
-            {LEVEL_LABEL[level]}
+          <span className="font-body text-[13px] text-brutal-black font-medium">{SPORT_EMOJI[sport]} {SPORT_LABEL[sport]}</span>
+          <span className={`text-[11px] font-display font-bold border-[1.5px] border-black rounded-full px-2 py-0.5 ${LEVEL_COLOR_MAP[level] ?? 'bg-gray-100 text-gray-800'}`}>
+            {LEVEL_LABEL_MAP[level] ?? level}
           </span>
         </div>
         {availabilityText && (

@@ -1,15 +1,10 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import { useGames } from '../hooks/useGames'
-import { SPORTS, FORMATS, DEFAULT_SLOTS } from '../lib/constants'
+import { SPORTS, FORMATS, DEFAULT_SLOTS, LEVELS_BY_SPORT, LEVELS_GENERIC } from '../lib/constants'
+import { supabase } from '../lib/supabase'
 import type { Sport, Level, GameFormat } from '../lib/constants'
-
-const LEVELS: { value: Level; label: string }[] = [
-  { value: 'principiante', label: 'Principiante' },
-  { value: 'intermedio', label: 'Intermedio' },
-  { value: 'avanzado', label: 'Avanzado' },
-]
 
 export default function CreateGame() {
   const navigate = useNavigate()
@@ -24,19 +19,32 @@ export default function CreateGame() {
   const [level, setLevel] = useState<Level | ''>('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [activeGamesCount, setActiveGamesCount] = useState(0)
+
+  useEffect(() => {
+    if (!user) return
+    supabase
+      .from('games')
+      .select('id', { count: 'exact', head: true })
+      .eq('created_by', user.id)
+      .eq('status', 'open')
+      .then(({ count }) => setActiveGamesCount(count ?? 0))
+  }, [user])
 
   const formatOptions = sport ? FORMATS[sport as keyof typeof FORMATS] : []
+  const levelOptions = sport ? LEVELS_BY_SPORT[sport as keyof typeof LEVELS_BY_SPORT] : LEVELS_GENERIC
 
   function handleSportChange(value: Sport) {
     setSport(value)
     setFormat('')
     setSlots('')
+    setLevel('')
   }
 
   function handleFormatChange(value: GameFormat) {
     setFormat(value)
     const defaultSlots = DEFAULT_SLOTS[value]
-    if (defaultSlots) setSlots(String(defaultSlots))
+    if (defaultSlots) setSlots(String(Math.max(1, defaultSlots - 1)))
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -54,6 +62,7 @@ export default function CreateGame() {
 
     setLoading(true)
     setError(null)
+    const slotsTotal = DEFAULT_SLOTS[format as GameFormat] ?? slotsNum
     const { error } = await createGame({
       created_by: user.id,
       sport: sport as Sport,
@@ -63,7 +72,8 @@ export default function CreateGame() {
       location_text: location,
       lat: null,
       lng: null,
-      slots_total: slotsNum,
+      slots_total: slotsTotal,
+      slots_available: slotsNum,
     })
     setLoading(false)
 
@@ -90,6 +100,17 @@ export default function CreateGame() {
         </button>
         <h1 className="font-display font-extrabold text-[24px] text-brutal-black">Crear Partido</h1>
       </div>
+
+      {/* Active games warning */}
+      {activeGamesCount > 0 && (
+        <div className="mx-5 mb-1 flex items-start gap-2.5 bg-yellow-50 border-2 border-yellow-400 rounded-[10px] px-4 py-3">
+          <span className="text-[18px] flex-shrink-0">⚠️</span>
+          <p className="font-body text-[12px] text-yellow-800">
+            Ya tienes <strong>{activeGamesCount} partido{activeGamesCount > 1 ? 's' : ''} abierto{activeGamesCount > 1 ? 's' : ''}</strong>.
+            Crea uno nuevo solo si realmente lo necesitas.
+          </p>
+        </div>
+      )}
 
       {/* Form */}
       <form onSubmit={handleSubmit} className="flex flex-col gap-4 px-5 pt-2 pb-6 overflow-y-auto flex-1">
@@ -187,7 +208,7 @@ export default function CreateGame() {
                        focus:outline-none focus:ring-2 focus:ring-primary shadow-[3px_3px_0px_0px_#000000] appearance-none"
           >
             <option value="">Seleccionar nivel</option>
-            {LEVELS.map(l => (
+            {[...levelOptions].map(l => (
               <option key={l.value} value={l.value}>{l.label}</option>
             ))}
           </select>

@@ -4,6 +4,7 @@ import { useProfile } from '../hooks/useProfile'
 import { usePlayerRequests } from '../hooks/usePlayerRequests'
 import Avatar from '../components/ui/Avatar'
 import type { Sport, Level } from '../lib/constants'
+import { LEVELS_BY_SPORT, LEVEL_LABEL_MAP, LEVEL_COLOR_MAP } from '../lib/constants'
 
 const SPORTS_CONFIG = [
   { key: 'padel', levelKey: 'padel_level', label: 'Pádel', emoji: '🎾' },
@@ -12,20 +13,6 @@ const SPORTS_CONFIG = [
   { key: 'basket', levelKey: 'basket_level', label: 'Básket', emoji: '🏀' },
 ] as const
 
-const LEVEL_LABEL: Record<string, string> = {
-  principiante: 'Principiante', intermedio: 'Intermedio', avanzado: 'Avanzado',
-}
-const LEVEL_BADGE: Record<string, string> = {
-  principiante: 'bg-green-100 text-green-800',
-  intermedio: 'bg-yellow-100 text-yellow-800',
-  avanzado: 'bg-red-100 text-red-800',
-}
-
-const LEVELS: { value: Level; label: string }[] = [
-  { value: 'principiante', label: 'Principiante' },
-  { value: 'intermedio', label: 'Intermedio' },
-  { value: 'avanzado', label: 'Avanzado' },
-]
 
 const SPORTS_OPTIONS: { value: Sport; label: string }[] = [
   { value: 'padel', label: 'Pádel' },
@@ -246,8 +233,8 @@ export default function Profile() {
                 <div className="flex flex-col flex-1">
                   <span className="font-display font-bold text-[14px] text-brutal-black">{s.label}</span>
                 </div>
-                <span className={`text-[11px] font-display font-bold border-2 border-black rounded-full px-2.5 py-1 ${LEVEL_BADGE[lvl]}`}>
-                  {LEVEL_LABEL[lvl]}
+                <span className={`text-[11px] font-display font-bold border-2 border-black rounded-full px-2.5 py-1 ${LEVEL_COLOR_MAP[lvl] ?? 'bg-gray-100 text-gray-800'}`}>
+                  {LEVEL_LABEL_MAP[lvl] ?? lvl}
                 </span>
               </div>
             )
@@ -282,7 +269,7 @@ export default function Profile() {
             <form onSubmit={handleQuieroJugar} className="flex flex-col gap-3">
               <div className="flex flex-col gap-1.5">
                 <label className="font-body font-medium text-sm text-brutal-black">Deporte</label>
-                <select value={qSport} onChange={e => setQSport(e.target.value as Sport)}
+                <select value={qSport} onChange={e => { setQSport(e.target.value as Sport); setQLevel(LEVELS_BY_SPORT[e.target.value as Sport][0].value) }}
                   className="w-full h-11 px-3 border-2 border-black rounded-[10px] bg-white font-body text-brutal-black
                              focus:outline-none focus:ring-2 focus:ring-primary appearance-none">
                   {SPORTS_OPTIONS.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
@@ -293,7 +280,7 @@ export default function Profile() {
                 <select value={qLevel} onChange={e => setQLevel(e.target.value as Level)}
                   className="w-full h-11 px-3 border-2 border-black rounded-[10px] bg-white font-body text-brutal-black
                              focus:outline-none focus:ring-2 focus:ring-primary appearance-none">
-                  {LEVELS.map(l => <option key={l.value} value={l.value}>{l.label}</option>)}
+                  {LEVELS_BY_SPORT[qSport].map(l => <option key={l.value} value={l.value}>{l.label}</option>)}
                 </select>
               </div>
               <div className="flex flex-col gap-1.5">

@@ -6,16 +6,36 @@ interface OnboardingProps {
   onComplete: () => void
 }
 
+function validatePhone(value: string): string | null {
+  if (!value.trim()) return null // opcional
+  if (!/^[+\d\s\-().]+$/.test(value)) return 'Solo se permiten números, +, espacios y guiones'
+  const digits = value.replace(/\D/g, '')
+  if (digits.length < 8) return 'El número es demasiado corto'
+  if (digits.length > 15) return 'El número es demasiado largo'
+  return null
+}
+
 export default function Onboarding({ onComplete }: OnboardingProps) {
   const { user } = useAuth()
   const [name, setName] = useState('')
   const [phone, setPhone] = useState('')
+  const [phoneError, setPhoneError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  function handlePhoneChange(value: string) {
+    setPhone(value)
+    setPhoneError(validatePhone(value))
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!user || !name.trim()) return
+    const phoneValidation = validatePhone(phone)
+    if (phoneValidation) {
+      setPhoneError(phoneValidation)
+      return
+    }
     setLoading(true)
     setError(null)
 
@@ -88,22 +108,24 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
             <input
               type="tel"
               value={phone}
-              onChange={e => setPhone(e.target.value)}
+              onChange={e => handlePhoneChange(e.target.value)}
               placeholder="+56 9 1234 5678"
-              className="w-full h-[44px] px-4 border-2 border-black rounded-[10px] bg-cream
+              className={`w-full h-[44px] px-4 border-2 rounded-[10px] bg-cream
                          font-body text-brutal-black placeholder:text-gray-400
-                         focus:outline-none focus:ring-2 focus:ring-primary"
+                         focus:outline-none focus:ring-2 focus:ring-primary
+                         ${phoneError ? 'border-danger' : 'border-black'}`}
             />
-            <p className="font-body text-[11px] text-gray-400">
-              Sin teléfono otros jugadores no podrán contactarte.
-            </p>
+            {phoneError
+              ? <p className="font-body text-[11px] text-danger">{phoneError}</p>
+              : <p className="font-body text-[11px] text-gray-400">Sin teléfono otros jugadores no podrán contactarte.</p>
+            }
           </div>
 
           {error && <p className="font-body text-[13px] text-danger">{error}</p>}
 
           <button
             type="submit"
-            disabled={loading || !name.trim()}
+            disabled={loading || !name.trim() || !!phoneError}
             className="w-full h-[48px] flex items-center justify-center gap-2
                        bg-primary border-[2.5px] border-black rounded-[12px]
                        shadow-[3px_3px_0px_0px_#000000]

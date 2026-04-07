@@ -35,10 +35,10 @@ export function useGames() {
     }
   }
 
-  async function createGame(game: Omit<Game, 'id' | 'created_at' | 'status' | 'slots_available'>) {
+  async function createGame(game: Omit<Game, 'id' | 'created_at' | 'status'>) {
     const { data, error } = await supabase
       .from('games')
-      .insert({ ...game, status: 'open', slots_available: game.slots_total })
+      .insert({ ...game, status: 'open' })
       .select()
       .single()
     return { data: data as Game | null, error }

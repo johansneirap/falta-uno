@@ -1,39 +1,16 @@
 import { useNavigate } from 'react-router-dom'
 import type { Game, Sport } from '../../lib/constants'
+import { LEVEL_LABEL_MAP, LEVEL_COLOR_MAP } from '../../lib/constants'
 
 const SPORT_EMOJI: Record<Sport, string> = {
-  padel: '🎾',
-  futbol: '⚽',
-  tenis: '🎾',
-  basket: '🏀',
+  padel: '🎾', futbol: '⚽', tenis: '🎾', basket: '🏀',
 }
-
 const SPORT_LABEL: Record<Sport, string> = {
-  padel: 'Pádel',
-  futbol: 'Fútbol',
-  tenis: 'Tenis',
-  basket: 'Básket',
+  padel: 'Pádel', futbol: 'Fútbol', tenis: 'Tenis', basket: 'Básket',
 }
-
 const FORMAT_LABEL: Record<string, string> = {
-  dobles: 'Dobles',
-  singles: 'Singles',
-  '5v5': '5 vs 5',
-  '7v7': '7 vs 7',
-  '11v11': '11 vs 11',
-  '3v3': '3 vs 3',
-}
-
-const LEVEL_BADGE: Record<string, string> = {
-  principiante: 'bg-green-100 text-green-800',
-  intermedio: 'bg-yellow-100 text-yellow-800',
-  avanzado: 'bg-red-100 text-red-800',
-}
-
-const LEVEL_LABEL: Record<string, string> = {
-  principiante: 'Principiante',
-  intermedio: 'Intermedio',
-  avanzado: 'Avanzado',
+  dobles: 'Dobles', singles: 'Singles',
+  '5v5': '5 vs 5', '7v7': '7 vs 7', '11v11': '11 vs 11', '3v3': '3 vs 3',
 }
 
 function formatDatetime(iso: string) {
@@ -65,8 +42,8 @@ export default function GameCard({ game }: GameCardProps) {
         <span className="font-display font-bold text-[15px] text-brutal-black">
           {SPORT_EMOJI[game.sport]} {SPORT_LABEL[game.sport]} · {FORMAT_LABEL[game.format] ?? game.format}
         </span>
-        <span className={`text-xs font-display font-bold border-[1.5px] border-black rounded-full px-[10px] py-1 ${LEVEL_BADGE[game.level_required]}`}>
-          {LEVEL_LABEL[game.level_required]}
+        <span className={`text-xs font-display font-bold border-[1.5px] border-black rounded-full px-[10px] py-1 ${LEVEL_COLOR_MAP[game.level_required] ?? 'bg-gray-100 text-gray-800'}`}>
+          {LEVEL_LABEL_MAP[game.level_required] ?? game.level_required}
         </span>
       </div>
 

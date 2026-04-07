@@ -4,6 +4,7 @@ import { useAuth } from '../hooks/useAuth'
 import { supabase } from '../lib/supabase'
 import Avatar from '../components/ui/Avatar'
 import type { Game, Sport } from '../lib/constants'
+import { LEVEL_LABEL_MAP } from '../lib/constants'
 
 const SPORT_EMOJI: Record<string, string> = {
   padel: '🎾', futbol: '⚽', tenis: '🎾', basket: '🏀',
@@ -14,9 +15,6 @@ const SPORT_LABEL: Record<string, string> = {
 const FORMAT_LABEL: Record<string, string> = {
   dobles: 'Dobles', singles: 'Singles',
   '5v5': '5 vs 5', '7v7': '7 vs 7', '11v11': '11 vs 11', '3v3': '3 vs 3',
-}
-const LEVEL_LABEL: Record<string, string> = {
-  principiante: 'Principiante', intermedio: 'Intermedio', avanzado: 'Avanzado',
 }
 
 interface GameWithRelations extends Game {
@@ -121,6 +119,8 @@ export default function GameDetail() {
   }
 
   const emptySlots = Array.from({ length: game.slots_available })
+  // Players confirmed outside the app (organizer already counted, app joins already counted)
+  const dummyCount = Math.max(0, game.slots_total - game.slots_available - 1 - joins.length)
 
   return (
     <div className="app-container flex flex-col bg-cream min-h-screen">
@@ -164,7 +164,7 @@ export default function GameDetail() {
             </div>
             <div className="flex items-start gap-3">
               <SignalIcon />
-              <span className="font-body text-[13px] text-brutal-black">{LEVEL_LABEL[game.level_required]}</span>
+              <span className="font-body text-[13px] text-brutal-black">{LEVEL_LABEL_MAP[game.level_required] ?? game.level_required}</span>
             </div>
           </div>
 
@@ -175,7 +175,7 @@ export default function GameDetail() {
             <div className="flex items-center justify-between">
               <span className="font-display font-bold text-[16px] text-brutal-black">Jugadores</span>
               <span className="bg-primary border-[2px] border-black rounded-full px-2.5 py-1 font-display font-bold text-[12px]">
-                {joins.length + 1} / {game.slots_total + 1}
+                {game.slots_total - game.slots_available} / {game.slots_total}
               </span>
             </div>
 
@@ -191,13 +191,29 @@ export default function GameDetail() {
                 </div>
               </div>
 
-              {/* Jugadores unidos */}
+              {/* Jugadores confirmados fuera de la app */}
+              {Array.from({ length: dummyCount }).map((_, i) => (
+                <div key={`dummy-${i}`} className="flex items-center gap-3 bg-secondary/20 border-2 border-black rounded-[10px] p-3">
+                  <div className="w-8 h-8 rounded-full bg-gray-200 border-2 border-black flex items-center justify-center flex-shrink-0">
+                    <span className="font-display font-bold text-[11px] text-gray-500">J{i + 2}</span>
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="font-display font-bold text-[13px] text-brutal-black">Jugador {i + 2}</span>
+                    <span className="font-body text-[11px] text-gray-400">Confirmado</span>
+                  </div>
+                </div>
+              ))}
+
+              {/* Jugadores unidos por la app */}
               {joins.map(j => (
                 <div key={j.user_id} className="flex items-center gap-3 bg-secondary/20 border-2 border-black rounded-[10px] p-3">
                   <Avatar name={j.player?.name ?? '?'} size="sm" />
-                  <span className="font-display font-bold text-[13px] text-brutal-black">
-                    {j.player?.name ?? 'Jugador'}
-                  </span>
+                  <div className="flex flex-col">
+                    <span className="font-display font-bold text-[13px] text-brutal-black">
+                      {j.player?.name ?? 'Jugador'}
+                    </span>
+                    <span className="font-body text-[11px] text-gray-400">Vía Falta 1</span>
+                  </div>
                 </div>
               ))}
 

@@ -5,11 +5,54 @@ export const SPORTS = [
   { value: 'basket', label: 'Básket', emoji: '🏀' },
 ] as const
 
-export const LEVELS = [
+// Niveles genéricos (fútbol, tenis, básket)
+export const LEVELS_GENERIC = [
+  { value: 'recreacional', label: 'Recreacional' },
   { value: 'principiante', label: 'Principiante' },
   { value: 'intermedio', label: 'Intermedio' },
   { value: 'avanzado', label: 'Avanzado' },
 ] as const
+
+// Niveles por deporte
+export const LEVELS_BY_SPORT = {
+  padel: [
+    { value: 'recreacional', label: 'Recreacional' },
+    { value: '6ta', label: '6ª Categoría' },
+    { value: '5ta', label: '5ª Categoría' },
+    { value: '4ta', label: '4ª Categoría' },
+    { value: '3ra', label: '3ª Categoría' },
+    { value: '2da', label: '2ª Categoría' },
+  ],
+  tenis: LEVELS_GENERIC,
+  futbol: LEVELS_GENERIC,
+  basket: LEVELS_GENERIC,
+} as const satisfies Record<string, readonly { value: string; label: string }[]>
+
+// Mapa label → todos los niveles posibles
+export const LEVEL_LABEL_MAP: Record<string, string> = {
+  recreacional: 'Recreacional',
+  principiante: 'Principiante',
+  intermedio: 'Intermedio',
+  avanzado: 'Avanzado',
+  '6ta': '6ª Cat.',
+  '5ta': '5ª Cat.',
+  '4ta': '4ª Cat.',
+  '3ra': '3ª Cat.',
+  '2da': '2ª Cat.',
+}
+
+// Mapa color badge → todos los niveles posibles
+export const LEVEL_COLOR_MAP: Record<string, string> = {
+  recreacional: 'bg-purple-100 text-purple-800',
+  principiante: 'bg-blue-100 text-blue-800',
+  intermedio: 'bg-yellow-100 text-yellow-800',
+  avanzado: 'bg-red-100 text-red-800',
+  '6ta': 'bg-green-100 text-green-800',
+  '5ta': 'bg-teal-100 text-teal-800',
+  '4ta': 'bg-yellow-100 text-yellow-800',
+  '3ra': 'bg-orange-100 text-orange-800',
+  '2da': 'bg-red-100 text-red-800',
+}
 
 export const FORMATS = {
   padel: [
@@ -43,7 +86,8 @@ export const DEFAULT_SLOTS: Record<string, number> = {
 // ─── Tipos primitivos ─────────────────────────────────────────────────────────
 
 export type Sport = 'padel' | 'futbol' | 'tenis' | 'basket'
-export type Level = 'principiante' | 'intermedio' | 'avanzado'
+// Level es string abierto para soportar categorías por deporte (6ta, 5ta…)
+export type Level = string
 export type GameStatus = 'open' | 'full' | 'cancelled'
 export type PlayerRequestStatus = 'active' | 'inactive'
 export type PadelFormat = 'dobles' | 'singles'
@@ -51,14 +95,6 @@ export type TenisFormat = 'singles' | 'dobles'
 export type FutbolFormat = '5v5' | '7v7' | '11v11'
 export type BasketFormat = '3v3' | '5v5'
 export type GameFormat = PadelFormat | FutbolFormat | BasketFormat
-
-// ─── Constantes tipadas ───────────────────────────────────────────────────────
-
-export const LEVEL_COLORS: Record<Level, string> = {
-  principiante: 'bg-blue-100 text-blue-800',
-  intermedio: 'bg-yellow-100 text-yellow-800',
-  avanzado: 'bg-red-100 text-red-800',
-}
 
 export const GAME_STATUS: Record<GameStatus, string> = {
   open: 'Abierto',
