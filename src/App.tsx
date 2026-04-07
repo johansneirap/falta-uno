@@ -8,6 +8,7 @@ import Onboarding from './pages/Onboarding'
 import Home from './pages/Home'
 import CreateGame from './pages/CreateGame'
 import GameDetail from './pages/GameDetail'
+import EditGame from './pages/EditGame'
 import Players from './pages/Players'
 import Profile from './pages/Profile'
 
@@ -75,6 +76,7 @@ function AppRoutes() {
       <Route path="/" element={<Layout><Home /></Layout>} />
       <Route path="/crear" element={<Layout><CreateGame /></Layout>} />
       <Route path="/partido/:id" element={<GameDetail />} />
+      <Route path="/partido/:id/editar" element={<EditGame />} />
       <Route path="/jugadores" element={<Layout><Players /></Layout>} />
       <Route path="/perfil" element={<Layout><Profile /></Layout>} />
       <Route path="*" element={<Navigate to="/" replace />} />

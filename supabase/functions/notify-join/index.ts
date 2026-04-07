@@ -49,14 +49,14 @@ Deno.serve(async (req) => {
   const format = FORMAT_LABEL[game.format] ?? game.format
   const slotsLeft = game.slots_available  // already decremented by join_game RPC
 
-  await fetch('https://api.resend.com/emails', {
+  const resendRes = await fetch('https://api.resend.com/emails', {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${Deno.env.get('RESEND_API_KEY')}`,
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      from: 'Falta 1 <onboarding@resend.dev>',
+      from: `Falta 1 <noreply@${Deno.env.get('EMAIL_DOMAIN') ?? 'resend.dev'}>`,
       to: organizerEmail,
       subject: `${joiner.name} se unió a tu partido`,
       html: `
@@ -75,5 +75,12 @@ Deno.serve(async (req) => {
     }),
   })
 
-  return new Response(null, { status: 200 })
+  const resendBody = await resendRes.json()
+  console.log('Resend status:', resendRes.status, JSON.stringify(resendBody))
+  console.log('Sending to:', organizerEmail, '| from domain:', Deno.env.get('EMAIL_DOMAIN') ?? 'resend.dev')
+
+  return new Response(JSON.stringify({ ok: resendRes.ok, resend: resendBody }), {
+    status: 200,
+    headers: { 'Content-Type': 'application/json' },
+  })
 })

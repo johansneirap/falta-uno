@@ -103,11 +103,7 @@ export default function Profile() {
   }
 
   useEffect(() => {
-    if (loading) return
-    if (!profile) {
-      setEditMode(true)
-      return
-    }
+    if (!profile) return
     setName(profile.name ?? '')
     setPhone(profile.phone ?? '')
     setSportLevels({
@@ -116,7 +112,7 @@ export default function Profile() {
       tenis_level: profile.tenis_level ?? '',
       basket_level: profile.basket_level ?? '',
     })
-  }, [profile, loading])
+  }, [profile])
 
   async function handleSaveProfile(e: React.FormEvent) {
     e.preventDefault()
