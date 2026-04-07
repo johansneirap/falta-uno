@@ -9,34 +9,54 @@ const SPORT_LABEL: Record<string, string> = {
   padel: 'Pádel', futbol: 'Fútbol', tenis: 'Tenis', basket: 'Básket',
 }
 
-interface PlayerCardProps {
-  name: string
-  phone: string | null
+export interface SportEntry {
   sport: Sport
   level: Level
   availabilityText: string | null
 }
 
-export default function PlayerCard({ name, phone, sport, level, availabilityText }: PlayerCardProps) {
+interface PlayerCardProps {
+  name: string
+  phone: string | null
+  sports: SportEntry[]
+}
+
+export default function PlayerCard({ name, phone, sports }: PlayerCardProps) {
+  const primarySport = sports[0]
+
   function handleContact() {
     if (!phone) return
+    const sportsList = sports.map(s => SPORT_LABEL[s.sport]).join(' y ')
     const msg = encodeURIComponent(
-      `Hola ${name}! Te vi en Falta 1 buscando partido de ${SPORT_LABEL[sport]}. ¿Sigues disponible?`
+      `Hola ${name}! Te vi en Falta 1 buscando partido de ${sportsList}. ¿Sigues disponible?`
     )
     window.open(`https://wa.me/${phone.replace(/\D/g, '')}?text=${msg}`, '_blank')
   }
 
+  const availabilityText = sports
+    .map(s => s.availabilityText)
+    .find(t => t != null) ?? null
+
   return (
     <div className="bg-white border-2 border-black rounded-[12px] shadow-brutal p-3.5 flex items-center gap-3 w-full">
       <Avatar name={name} size="md" />
-      <div className="flex flex-col gap-1 flex-1 min-w-0">
+      <div className="flex flex-col gap-1.5 flex-1 min-w-0">
         <span className="font-display font-bold text-[14px] text-brutal-black">{name}</span>
-        <div className="flex items-center gap-2">
-          <span className="font-body text-[13px] text-brutal-black font-medium">{SPORT_EMOJI[sport]} {SPORT_LABEL[sport]}</span>
-          <span className={`text-[11px] font-display font-bold border-[1.5px] border-black rounded-full px-2 py-0.5 ${LEVEL_COLOR_MAP[level] ?? 'bg-gray-100 text-gray-800'}`}>
-            {LEVEL_LABEL_MAP[level] ?? level}
-          </span>
+
+        {/* Sports tags */}
+        <div className="flex flex-wrap gap-1.5">
+          {sports.map(s => (
+            <div key={s.sport} className="flex items-center gap-1">
+              <span className="font-body text-[12px] text-brutal-black font-medium">
+                {SPORT_EMOJI[s.sport]} {SPORT_LABEL[s.sport]}
+              </span>
+              <span className={`text-[10px] font-display font-bold border-[1.5px] border-black rounded-full px-1.5 py-0.5 ${LEVEL_COLOR_MAP[s.level] ?? 'bg-gray-100 text-gray-800'}`}>
+                {LEVEL_LABEL_MAP[s.level] ?? s.level}
+              </span>
+            </div>
+          ))}
         </div>
+
         {availabilityText && (
           <span className="font-body text-[11px] text-gray-400 truncate">{availabilityText}</span>
         )}

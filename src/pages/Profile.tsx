@@ -3,6 +3,7 @@ import { useAuth } from '../hooks/useAuth'
 import { useProfile } from '../hooks/useProfile'
 import { usePlayerRequests } from '../hooks/usePlayerRequests'
 import Avatar from '../components/ui/Avatar'
+import { supabase } from '../lib/supabase'
 import type { Sport, Level } from '../lib/constants'
 import { LEVELS_BY_SPORT, LEVEL_LABEL_MAP, LEVEL_COLOR_MAP } from '../lib/constants'
 
@@ -24,12 +25,15 @@ const SPORTS_OPTIONS: { value: Sport; label: string }[] = [
 export default function Profile() {
   const { user, signOut } = useAuth()
   const { profile, stats, loading, fetchProfile, upsertProfile } = useProfile()
-  const { createPlayerRequest } = usePlayerRequests()
+  const { createPlayerRequest, deactivateRequest } = usePlayerRequests()
 
   // Onboarding / edit mode
   const [editMode, setEditMode] = useState(false)
   const [name, setName] = useState('')
   const [phone, setPhone] = useState('')
+  const [sportLevels, setSportLevels] = useState<Record<string, Level | ''>>({
+    padel_level: '', soccer_level: '', tenis_level: '', basket_level: '',
+  })
   const [saving, setSaving] = useState(false)
 
   // Quiero jugar form
@@ -40,16 +44,79 @@ export default function Profile() {
   const [qSaving, setQSaving] = useState(false)
   const [qSuccess, setQSuccess] = useState(false)
 
-  useEffect(() => {
-    if (user) fetchProfile(user.id)
-  }, [user])
+  // Disponibilidades activas del usuario
+  const [myRequests, setMyRequests] = useState<{ id: string; sport: Sport; level: Level; availability_text: string | null }[]>([])
+
+  // Historial de partidos
+  type HistoryGame = { id: string; sport: string; format: string; location_text: string; datetime: string; status: string; role: 'organizador' | 'jugador' }
+  const [history, setHistory] = useState<HistoryGame[]>([])
+  const [showHistory, setShowHistory] = useState(false)
+  const [historyLoading, setHistoryLoading] = useState(false)
 
   useEffect(() => {
-    if (profile) {
-      setName(profile.name ?? '')
-      setPhone(profile.phone ?? '')
+    if (!user) return
+    fetchProfile(user.id)
+    supabase
+      .from('player_requests')
+      .select('id, sport, level, availability_text')
+      .eq('user_id', user.id)
+      .eq('status', 'active')
+      .then(({ data }) => setMyRequests((data ?? []) as typeof myRequests))
+  }, [user])
+
+  async function loadHistory() {
+    if (!user || historyLoading) return
+    setHistoryLoading(true)
+    const now = new Date().toISOString()
+
+    const [organizedRes, joinedRes] = await Promise.all([
+      supabase
+        .from('games')
+        .select('id, sport, format, location_text, datetime, status')
+        .eq('created_by', user.id)
+        .or(`datetime.lt.${now},status.in.(completed,cancelled)`)
+        .order('datetime', { ascending: false })
+        .limit(30),
+      supabase
+        .from('game_joins')
+        .select('game:games(id, sport, format, location_text, datetime, status, created_by)')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(30),
+    ])
+
+    const organized: HistoryGame[] = (organizedRes.data ?? []).map((g: any) => ({ ...g, role: 'organizador' as const }))
+    const organizedIds = new Set(organized.map(g => g.id))
+
+    const joined: HistoryGame[] = (joinedRes.data ?? [])
+      .map((j: any) => j.game)
+      .filter((g: any) => g && !organizedIds.has(g.id) && (new Date(g.datetime) < new Date() || ['completed', 'cancelled'].includes(g.status)))
+      .map((g: any) => ({ ...g, role: 'jugador' as const }))
+
+    const all = [...organized, ...joined].sort(
+      (a, b) => new Date(b.datetime).getTime() - new Date(a.datetime).getTime()
+    )
+
+    setHistory(all)
+    setHistoryLoading(false)
+    setShowHistory(true)
+  }
+
+  useEffect(() => {
+    if (loading) return
+    if (!profile) {
+      setEditMode(true)
+      return
     }
-  }, [profile])
+    setName(profile.name ?? '')
+    setPhone(profile.phone ?? '')
+    setSportLevels({
+      padel_level: profile.padel_level ?? '',
+      soccer_level: profile.soccer_level ?? '',
+      tenis_level: profile.tenis_level ?? '',
+      basket_level: profile.basket_level ?? '',
+    })
+  }, [profile, loading])
 
   async function handleSaveProfile(e: React.FormEvent) {
     e.preventDefault()
@@ -59,6 +126,10 @@ export default function Profile() {
       name: name.trim(),
       phone: phone.trim(),
       email: user.email,
+      padel_level: (sportLevels.padel_level as Level) || null,
+      soccer_level: (sportLevels.soccer_level as Level) || null,
+      tenis_level: (sportLevels.tenis_level as Level) || null,
+      basket_level: (sportLevels.basket_level as Level) || null,
     })
     setSaving(false)
     setEditMode(false)
@@ -77,6 +148,15 @@ export default function Profile() {
     setQSaving(false)
     if (!error) {
       setQSuccess(true)
+      // Refrescar lista de disponibilidades
+      if (user) {
+        supabase
+          .from('player_requests')
+          .select('id, sport, level, availability_text')
+          .eq('user_id', user.id)
+          .eq('status', 'active')
+          .then(({ data }) => setMyRequests((data ?? []) as typeof myRequests))
+      }
       setTimeout(() => { setShowQuieroForm(false); setQSuccess(false) }, 1500)
     }
   }
@@ -129,6 +209,28 @@ export default function Profile() {
                          text-brutal-black placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary
                          shadow-[3px_3px_0px_0px_#000000]"
             />
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <label className="font-body font-medium text-sm text-brutal-black">Mis Deportes y Nivel</label>
+            <div className="flex flex-col gap-2">
+              {SPORTS_CONFIG.map(s => (
+                <div key={s.key} className="flex items-center gap-3">
+                  <span className="text-[18px] w-6 flex-shrink-0">{s.emoji}</span>
+                  <span className="font-body text-[13px] text-brutal-black w-14 flex-shrink-0">{s.label}</span>
+                  <select
+                    value={sportLevels[s.levelKey]}
+                    onChange={e => setSportLevels(prev => ({ ...prev, [s.levelKey]: e.target.value as Level | '' }))}
+                    className="flex-1 h-10 px-3 border-2 border-black rounded-[10px] bg-white font-body text-brutal-black
+                               text-[13px] focus:outline-none focus:ring-2 focus:ring-primary appearance-none"
+                  >
+                    <option value="">Sin nivel</option>
+                    {LEVELS_BY_SPORT[s.key as keyof typeof LEVELS_BY_SPORT].map(l => (
+                      <option key={l.value} value={l.value}>{l.label}</option>
+                    ))}
+                  </select>
+                </div>
+              ))}
+            </div>
           </div>
           <button
             type="submit"
@@ -242,6 +344,44 @@ export default function Profile() {
         </div>
       )}
 
+      {/* Mi disponibilidad activa */}
+      {myRequests.length > 0 && (
+        <div className="flex flex-col gap-3">
+          <span className="font-display font-bold text-[16px] text-brutal-black">Mi disponibilidad</span>
+          {myRequests.map(req => (
+            <div key={req.id} className="flex items-center gap-3 bg-white border-[2.5px] border-black
+                                         rounded-[12px] shadow-[3px_3px_0px_0px_#000000] px-4 py-3">
+              <div className="flex flex-col flex-1 gap-1 min-w-0">
+                <div className="flex items-center gap-2">
+                  <span className="font-display font-bold text-[13px] text-brutal-black">
+                    {{padel:'🎾 Pádel',futbol:'⚽ Fútbol',tenis:'🎾 Tenis',basket:'🏀 Básket'}[req.sport]}
+                  </span>
+                  <span className={`text-[11px] font-display font-bold border-[1.5px] border-black rounded-full px-2 py-0.5 ${LEVEL_COLOR_MAP[req.level] ?? 'bg-gray-100 text-gray-800'}`}>
+                    {LEVEL_LABEL_MAP[req.level] ?? req.level}
+                  </span>
+                </div>
+                {req.availability_text && (
+                  <span className="font-body text-[11px] text-gray-400 truncate">{req.availability_text}</span>
+                )}
+              </div>
+              <button
+                onClick={async () => {
+                  await deactivateRequest(req.id)
+                  setMyRequests(prev => prev.filter(r => r.id !== req.id))
+                }}
+                className="flex-shrink-0 w-8 h-8 flex items-center justify-center
+                           bg-danger/10 border-[1.5px] border-danger rounded-full
+                           text-danger font-bold text-[16px] leading-none
+                           transition-all active:opacity-70"
+                title="Quitar disponibilidad"
+              >
+                ✕
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+
       {/* Quiero jugar button / form */}
       {!showQuieroForm ? (
         <button
@@ -304,6 +444,58 @@ export default function Profile() {
           )}
         </div>
       )}
+
+      {/* Historial */}
+      <div className="flex flex-col gap-3">
+        <button
+          onClick={showHistory ? () => setShowHistory(false) : loadHistory}
+          className="w-full flex items-center justify-between px-4 py-3
+                     bg-white border-[2.5px] border-black rounded-[12px]
+                     shadow-[3px_3px_0px_0px_#000000]
+                     transition-all active:shadow-none active:translate-x-[3px] active:translate-y-[3px]"
+        >
+          <span className="font-display font-bold text-[15px] text-brutal-black">📋 Historial de partidos</span>
+          <span className="font-body text-[13px] text-gray-400">{showHistory ? '▲' : '▼'}</span>
+        </button>
+
+        {showHistory && (
+          <div className="flex flex-col gap-2">
+            {historyLoading && (
+              <div className="flex justify-center py-6">
+                <svg className="animate-spin text-primary" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                  <path d="M12 2a10 10 0 0 1 10 10" strokeLinecap="round" />
+                </svg>
+              </div>
+            )}
+            {!historyLoading && history.length === 0 && (
+              <p className="font-body text-[13px] text-gray-400 text-center py-4">
+                Aún no tienes partidos en el historial.
+              </p>
+            )}
+            {!historyLoading && history.map(g => (
+              <div key={g.id + g.role}
+                   className="bg-white border-2 border-black rounded-[10px] px-4 py-3 flex items-center gap-3">
+                <span className="text-[20px] flex-shrink-0">
+                  {{ padel:'🎾', futbol:'⚽', tenis:'🎾', basket:'🏀' }[g.sport] ?? '🏅'}
+                </span>
+                <div className="flex flex-col flex-1 min-w-0">
+                  <span className="font-display font-bold text-[13px] text-brutal-black truncate">
+                    {g.location_text}
+                  </span>
+                  <span className="font-body text-[11px] text-gray-400">
+                    {new Date(g.datetime).toLocaleDateString('es-CL', { day: 'numeric', month: 'short', year: 'numeric' })}
+                  </span>
+                </div>
+                <span className={`text-[10px] font-display font-bold border-[1.5px] border-black rounded-full px-2 py-0.5 flex-shrink-0
+                  ${g.role === 'organizador' ? 'bg-primary/20 text-brutal-black' : 'bg-secondary/20 text-brutal-black'}`}>
+                  {g.role === 'organizador' ? 'Org.' : 'Jugador'}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
     </div>
   )
 }

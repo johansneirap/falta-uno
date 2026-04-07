@@ -5,6 +5,7 @@ import { supabase } from '../lib/supabase'
 import Avatar from '../components/ui/Avatar'
 import type { Game, Sport } from '../lib/constants'
 import { LEVEL_LABEL_MAP } from '../lib/constants'
+import { useGames } from '../hooks/useGames'
 
 const SPORT_EMOJI: Record<string, string> = {
   padel: '🎾', futbol: '⚽', tenis: '🎾', basket: '🏀',
@@ -37,15 +38,36 @@ export default function GameDetail() {
   const navigate = useNavigate()
   const { user } = useAuth()
 
+  const { cancelGame, completeGame } = useGames()
+
   const [game, setGame] = useState<GameWithRelations | null>(null)
   const [joins, setJoins] = useState<JoinWithPlayer[]>([])
   const [loading, setLoading] = useState(true)
   const [joining, setJoining] = useState(false)
   const [joinError, setJoinError] = useState<string | null>(null)
+  const [cancelling, setCancelling] = useState(false)
+  const [confirmCancel, setConfirmCancel] = useState(false)
+  const [completing, setCompleting] = useState(false)
 
   const alreadyJoined = joins.some(j => j.user_id === user?.id)
   const isOrganizer = game?.created_by === user?.id
   const isFull = game?.status === 'full'
+
+  async function handleCancelGame() {
+    if (!game) return
+    setCancelling(true)
+    const { error } = await cancelGame(game.id)
+    setCancelling(false)
+    if (!error) navigate('/', { state: { cancelled: true } })
+  }
+
+  async function handleCompleteGame() {
+    if (!game) return
+    setCompleting(true)
+    const { error } = await completeGame(game.id)
+    setCompleting(false)
+    if (!error) navigate('/', { state: { completed: true } })
+  }
 
   useEffect(() => {
     if (!id) return
@@ -83,6 +105,8 @@ export default function GameDetail() {
       setJoinError(error.message ?? 'No se pudo unir al partido')
     } else {
       await loadGame()
+      // Notificar al organizador (fire and forget — no bloquea el flujo)
+      supabase.functions.invoke('notify-join', { body: { game_id: game.id, joiner_id: user.id } })
       openWhatsApp()
     }
   }
@@ -255,6 +279,69 @@ export default function GameDetail() {
         {joinError && (
           <p className="font-body text-[13px] text-danger text-center">{joinError}</p>
         )}
+
+        {/* Acciones organizador */}
+        {isOrganizer && (
+          <div className="bg-white border-[2.5px] border-black rounded-[12px] shadow-[3px_3px_0px_0px_#000000] p-4 flex flex-col gap-3">
+
+            {/* Completar partido */}
+            {game.status !== 'completed' && game.status !== 'cancelled' && (
+              <button
+                onClick={handleCompleteGame}
+                disabled={completing}
+                className="w-full h-11 flex items-center justify-center gap-2
+                           bg-secondary border-2 border-black rounded-[10px]
+                           font-display font-bold text-[14px] text-black
+                           shadow-[3px_3px_0px_0px_#000000]
+                           transition-all active:shadow-none active:translate-x-[3px] active:translate-y-[3px]
+                           disabled:opacity-50"
+              >
+                {completing ? 'Guardando...' : '✅ Marcar como jugado'}
+              </button>
+            )}
+
+            {/* Eliminar partido */}
+            {!confirmCancel ? (
+              <button
+                onClick={() => setConfirmCancel(true)}
+                className="w-full h-11 flex items-center justify-center gap-2
+                           bg-white border-2 border-danger rounded-[10px]
+                           font-display font-bold text-[14px] text-danger
+                           transition-all active:opacity-70"
+              >
+                <TrashIcon />
+                Eliminar partido
+              </button>
+            ) : (
+              <div className="flex flex-col gap-3">
+                <p className="font-body text-[13px] text-brutal-black text-center">
+                  ¿Eliminar este partido? Esta acción no se puede deshacer.
+                </p>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setConfirmCancel(false)}
+                    className="flex-1 h-10 border-2 border-black rounded-[10px]
+                               font-display font-bold text-[13px] text-brutal-black
+                               transition-all active:opacity-70"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    onClick={handleCancelGame}
+                    disabled={cancelling}
+                    className="flex-1 h-10 bg-danger border-2 border-black rounded-[10px]
+                               font-display font-bold text-[13px] text-white
+                               shadow-[3px_3px_0px_0px_#000000]
+                               transition-all active:shadow-none active:translate-x-[3px] active:translate-y-[3px]
+                               disabled:opacity-50"
+                  >
+                    {cancelling ? 'Eliminando...' : 'Sí, eliminar'}
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Bottom action bar */}
@@ -331,6 +418,14 @@ function ChatIcon() {
   return (
     <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
       <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
+    </svg>
+  )
+}
+function TrashIcon() {
+  return (
+    <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+      <polyline points="3 6 5 6 21 6" /><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6" />
+      <path d="M10 11v6M14 11v6M9 6V4h6v2" />
     </svg>
   )
 }

@@ -25,26 +25,35 @@ function formatDatetime(iso: string) {
 
 interface GameCardProps {
   game: Game
+  joined?: boolean
 }
 
-export default function GameCard({ game }: GameCardProps) {
+export default function GameCard({ game, joined = false }: GameCardProps) {
   const navigate = useNavigate()
   const slotsLeft = game.slots_available
 
   return (
     <div
-      className="bg-white border-2 border-black rounded-[12px] shadow-brutal p-4 flex flex-col gap-3 w-full cursor-pointer
-                 active:shadow-none active:translate-x-[4px] active:translate-y-[4px] transition-all"
+      className={`border-2 border-black rounded-[12px] shadow-brutal p-4 flex flex-col gap-3 w-full cursor-pointer
+                 active:shadow-none active:translate-x-[4px] active:translate-y-[4px] transition-all
+                 ${game.status === 'full' ? 'bg-gray-50' : 'bg-white'}`}
       onClick={() => navigate(`/partido/${game.id}`)}
     >
-      {/* Top: deporte + nivel badge */}
-      <div className="flex items-center justify-between">
+      {/* Top: deporte + badges */}
+      <div className="flex items-center justify-between gap-2">
         <span className="font-display font-bold text-[15px] text-brutal-black">
           {SPORT_EMOJI[game.sport]} {SPORT_LABEL[game.sport]} · {FORMAT_LABEL[game.format] ?? game.format}
         </span>
-        <span className={`text-xs font-display font-bold border-[1.5px] border-black rounded-full px-[10px] py-1 ${LEVEL_COLOR_MAP[game.level_required] ?? 'bg-gray-100 text-gray-800'}`}>
-          {LEVEL_LABEL_MAP[game.level_required] ?? game.level_required}
-        </span>
+        <div className="flex items-center gap-1.5 flex-shrink-0">
+          {joined && (
+            <span className="text-xs font-display font-bold border-[1.5px] border-secondary rounded-full px-[10px] py-1 bg-secondary/20 text-secondary">
+              ✓ Unido
+            </span>
+          )}
+          <span className={`text-xs font-display font-bold border-[1.5px] border-black rounded-full px-[10px] py-1 ${LEVEL_COLOR_MAP[game.level_required] ?? 'bg-gray-100 text-gray-800'}`}>
+            {LEVEL_LABEL_MAP[game.level_required] ?? game.level_required}
+          </span>
+        </div>
       </div>
 
       {/* Ubicación */}
@@ -75,12 +84,17 @@ export default function GameCard({ game }: GameCardProps) {
         </div>
         <button
           onClick={e => { e.stopPropagation(); navigate(`/partido/${game.id}`) }}
-          className="bg-primary border-2 border-black rounded-full px-4 py-2
-                     font-display font-bold text-[13px] text-black
+          className={`border-2 border-black rounded-full px-4 py-2
+                     font-display font-bold text-[13px]
                      shadow-[3px_3px_0px_0px_#000000]
-                     transition-all active:shadow-none active:translate-x-[3px] active:translate-y-[3px]"
+                     transition-all active:shadow-none active:translate-x-[3px] active:translate-y-[3px]
+                     ${joined
+                       ? 'bg-secondary/20 text-secondary border-secondary shadow-none'
+                       : game.status === 'full'
+                         ? 'bg-white text-gray-400 border-gray-300 shadow-none'
+                         : 'bg-primary text-black'}`}
         >
-          Unirme
+          {joined ? 'Ver partido' : game.status === 'full' ? 'Ver partido' : 'Unirme'}
         </button>
       </div>
     </div>

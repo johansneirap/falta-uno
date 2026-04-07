@@ -3,6 +3,7 @@ import { usePlayerRequests } from '../hooks/usePlayerRequests'
 import PlayerCard from '../components/player/PlayerCard'
 import type { Sport, Level } from '../lib/constants'
 import { LEVELS_BY_SPORT, LEVELS_GENERIC } from '../lib/constants'
+import type { SportEntry } from '../components/player/PlayerCard'
 
 type SportFilter = Sport | 'todos'
 type LevelFilter = Level | 'todos'
@@ -19,6 +20,35 @@ export default function Players() {
   const { requests, loading, fetchPlayerRequests } = usePlayerRequests()
   const [sport, setSport] = useState<SportFilter>('todos')
   const [level, setLevel] = useState<LevelFilter>('todos')
+  const [search, setSearch] = useState('')
+
+  const filtered = search.trim()
+    ? requests.filter(r => r.player?.name?.toLowerCase().includes(search.toLowerCase()))
+    : requests
+
+  // En "Todos", agrupar por jugador mostrando todos sus deportes en una sola card
+  const displayList = sport !== 'todos'
+    ? filtered.map(r => ({
+        id: r.id,
+        name: r.player?.name ?? 'Jugador',
+        phone: r.player?.phone ?? null,
+        sports: [{ sport: r.sport, level: r.level, availabilityText: r.availability_text }] as SportEntry[],
+      }))
+    : Object.values(
+        filtered.reduce((acc, r) => {
+          const key = r.user_id
+          if (!acc[key]) {
+            acc[key] = {
+              id: r.user_id,
+              name: r.player?.name ?? 'Jugador',
+              phone: r.player?.phone ?? null,
+              sports: [],
+            }
+          }
+          acc[key].sports.push({ sport: r.sport, level: r.level, availabilityText: r.availability_text })
+          return acc
+        }, {} as Record<string, { id: string; name: string; phone: string | null; sports: SportEntry[] }>)
+      )
 
   const levelPills = [
     { value: 'todos' as LevelFilter, label: 'Todos' },
@@ -44,6 +74,25 @@ export default function Players() {
         <h1 className="font-display font-extrabold text-[24px] text-brutal-black">
           Jugadores Disponibles
         </h1>
+      </div>
+
+      {/* Search */}
+      <div className="px-5 pb-2">
+        <div className="flex items-center gap-2 bg-white border-2 border-black rounded-[10px]
+                        shadow-[2px_2px_0px_0px_#000000] px-3 h-10">
+          <SearchIcon />
+          <input
+            type="text"
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            placeholder="Buscar jugador por nombre..."
+            className="flex-1 bg-transparent font-body text-[13px] text-brutal-black
+                       placeholder:text-gray-400 focus:outline-none"
+          />
+          {search && (
+            <button onClick={() => setSearch('')} className="text-gray-400 text-lg leading-none">✕</button>
+          )}
+        </div>
       </div>
 
       {/* Sport tabs */}
@@ -93,29 +142,37 @@ export default function Players() {
           </div>
         )}
 
-        {!loading && requests.length === 0 && (
+        {!loading && displayList.length === 0 && (
           <div className="flex flex-col items-center gap-3 pt-16 text-center">
             <span className="text-5xl">🙋</span>
             <p className="font-display font-bold text-[16px] text-brutal-black">
-              No hay jugadores disponibles
+              {search ? 'Sin resultados para esa búsqueda' : 'No hay jugadores disponibles'}
             </p>
-            <p className="font-body text-[13px] text-gray-400">
-              Publica tu disponibilidad desde tu perfil
-            </p>
+            {!search && (
+              <p className="font-body text-[13px] text-gray-400">
+                Publica tu disponibilidad desde tu perfil
+              </p>
+            )}
           </div>
         )}
 
-        {!loading && requests.map(req => (
+        {!loading && displayList.map(item => (
           <PlayerCard
-            key={req.id}
-            name={req.player?.name ?? 'Jugador'}
-            phone={req.player?.phone ?? null}
-            sport={req.sport}
-            level={req.level}
-            availabilityText={req.availability_text}
+            key={item.id}
+            name={item.name}
+            phone={item.phone}
+            sports={item.sports}
           />
         ))}
       </div>
     </div>
+  )
+}
+
+function SearchIcon() {
+  return (
+    <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" className="text-gray-400 flex-shrink-0">
+      <circle cx="11" cy="11" r="8" /><path d="M21 21l-4.35-4.35" />
+    </svg>
   )
 }

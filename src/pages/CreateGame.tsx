@@ -27,7 +27,8 @@ export default function CreateGame() {
       .from('games')
       .select('id', { count: 'exact', head: true })
       .eq('created_by', user.id)
-      .eq('status', 'open')
+      .in('status', ['open', 'full'])
+      .gt('datetime', new Date().toISOString())
       .then(({ count }) => setActiveGamesCount(count ?? 0))
   }, [user])
 

@@ -11,6 +11,7 @@ export function useGames() {
   const [games, setGames] = useState<Game[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [joinedGameIds, setJoinedGameIds] = useState<Set<string>>(new Set())
 
   async function fetchGames({ sport, level }: FetchGamesOptions = {}) {
     setLoading(true)
@@ -19,7 +20,7 @@ export function useGames() {
     let query = supabase
       .from('games')
       .select('*')
-      .eq('status', 'open')
+      .in('status', ['open', 'full'])
       .gt('datetime', new Date().toISOString())
       .order('datetime', { ascending: true })
 
@@ -44,5 +45,29 @@ export function useGames() {
     return { data: data as Game | null, error }
   }
 
-  return { games, loading, error, fetchGames, createGame }
+  async function fetchJoinedGameIds(userId: string) {
+    const { data } = await supabase
+      .from('game_joins')
+      .select('game_id')
+      .eq('user_id', userId)
+    setJoinedGameIds(new Set((data ?? []).map((r: { game_id: string }) => r.game_id)))
+  }
+
+  async function cancelGame(gameId: string) {
+    const { error } = await supabase
+      .from('games')
+      .update({ status: 'cancelled' })
+      .eq('id', gameId)
+    return { error }
+  }
+
+  async function completeGame(gameId: string) {
+    const { error } = await supabase
+      .from('games')
+      .update({ status: 'completed' })
+      .eq('id', gameId)
+    return { error }
+  }
+
+  return { games, loading, error, joinedGameIds, fetchGames, fetchJoinedGameIds, createGame, cancelGame, completeGame }
 }

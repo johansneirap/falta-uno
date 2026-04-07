@@ -88,7 +88,7 @@ export const DEFAULT_SLOTS: Record<string, number> = {
 export type Sport = 'padel' | 'futbol' | 'tenis' | 'basket'
 // Level es string abierto para soportar categorías por deporte (6ta, 5ta…)
 export type Level = string
-export type GameStatus = 'open' | 'full' | 'cancelled'
+export type GameStatus = 'open' | 'full' | 'cancelled' | 'completed'
 export type PlayerRequestStatus = 'active' | 'inactive'
 export type PadelFormat = 'dobles' | 'singles'
 export type TenisFormat = 'singles' | 'dobles'
@@ -100,6 +100,7 @@ export const GAME_STATUS: Record<GameStatus, string> = {
   open: 'Abierto',
   full: 'Completo',
   cancelled: 'Cancelado',
+  completed: 'Jugado',
 }
 
 // ─── Tipos de base de datos ───────────────────────────────────────────────────

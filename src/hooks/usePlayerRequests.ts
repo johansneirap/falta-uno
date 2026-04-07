@@ -50,5 +50,13 @@ export function usePlayerRequests() {
     return { error }
   }
 
-  return { requests, loading, fetchPlayerRequests, createPlayerRequest }
+  async function deactivateRequest(requestId: string) {
+    const { error } = await supabase
+      .from('player_requests')
+      .update({ status: 'inactive' })
+      .eq('id', requestId)
+    return { error }
+  }
+
+  return { requests, loading, fetchPlayerRequests, createPlayerRequest, deactivateRequest }
 }
