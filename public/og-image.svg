@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
+  <!-- Fondo cream -->
+  <rect width="1200" height="630" fill="#F5F0E8"/>
+
+  <!-- Card central estilo neobrutalista -->
+  <rect x="180" y="80" width="840" height="470" rx="24" fill="#fff" stroke="#000" stroke-width="5"/>
+  <!-- Sombra dura -->
+  <rect x="192" y="92" width="840" height="470" rx="24" fill="#000"/>
+  <rect x="180" y="80" width="840" height="470" rx="24" fill="#fff" stroke="#000" stroke-width="5"/>
+
+  <!-- Banner naranja superior -->
+  <rect x="180" y="80" width="840" height="130" rx="24" fill="#F97316" stroke="#000" stroke-width="5"/>
+  <rect x="180" y="155" width="840" height="55" fill="#F97316"/>
+  <rect x="182" y="157" width="836" height="4" fill="#000"/>
+
+  <!-- Emojis deportes -->
+  <text x="360" y="168" font-size="72" text-anchor="middle">⚽</text>
+  <text x="520" y="168" font-size="72" text-anchor="middle">🎾</text>
+  <text x="680" y="168" font-size="72" text-anchor="middle">🏀</text>
+  <text x="840" y="168" font-size="72" text-anchor="middle">🏓</text>
+
+  <!-- Título FALTA 1 -->
+  <text x="600" y="350" font-family="monospace" font-weight="900" font-size="148" fill="#000" text-anchor="middle" letter-spacing="4">FALTA 1</text>
+
+  <!-- Subtítulo -->
+  <text x="600" y="430" font-family="sans-serif" font-weight="500" font-size="38" fill="#555" text-anchor="middle">Completa tu partido. Encuentra jugadores.</text>
+
+  <!-- Región -->
+  <text x="600" y="500" font-family="sans-serif" font-weight="400" font-size="28" fill="#999" text-anchor="middle">Región de Valparaíso · Chile</text>
+</svg>

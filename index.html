@@ -2,22 +2,48 @@
 <html lang="es">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#F5F0E8" />
-    <meta name="description" content="Falta 1 — Completa tu partido de pádel o fútbol en la Región de Valparaíso" />
-    <!-- Open Graph -->
-    <meta property="og:title" content="Falta 1" />
-    <meta property="og:description" content="Completa tu partido. Encuentra jugadores." />
+
+    <!-- PWA -->
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="theme-color" content="#F97316" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="Falta 1" />
+    <link rel="apple-touch-icon" href="/icon.svg" />
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+
+    <!-- SEO -->
+    <title>Falta 1 — Completa tu partido</title>
+    <meta name="description" content="Encuentra jugadores para completar tu partido de pádel, fútbol, tenis o básket en la Región de Valparaíso." />
+
+    <!-- Open Graph (WhatsApp, redes sociales) -->
     <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Falta 1" />
+    <meta property="og:title" content="Falta 1 — Completa tu partido" />
+    <meta property="og:description" content="Encuentra jugadores para completar tu partido de pádel, fútbol, tenis o básket en la Región de Valparaíso." />
+    <meta property="og:url" content="https://falta-uno-sigma.vercel.app/" />
+    <meta property="og:image" content="https://falta-uno-sigma.vercel.app/og-image.svg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:locale" content="es_CL" />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Falta 1 — Completa tu partido" />
+    <meta name="twitter:description" content="Encuentra jugadores para completar tu partido en la Región de Valparaíso." />
+    <meta name="twitter:image" content="https://falta-uno-sigma.vercel.app/og-image.svg" />
+
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
-    <title>Falta 1</title>
   </head>
   <body>
     <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
+    <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
