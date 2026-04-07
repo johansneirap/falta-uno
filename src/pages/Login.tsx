@@ -26,7 +26,7 @@ export default function Login() {
   }
 
   return (
-    <div className="app-container flex flex-col bg-cream" style={{ height: '100dvh' }}>
+    <div className="app-container flex flex-col bg-cream" style={{ height: '100dvh', overflow: 'hidden' }}>
 
       {/* Content — centrado verticalmente */}
       <div className="flex flex-col justify-center gap-8 flex-1 px-6 pb-6 pt-6">

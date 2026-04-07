@@ -55,7 +55,7 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
   }
 
   return (
-    <div className="app-container flex flex-col bg-cream min-h-screen">
+    <div className="app-container flex flex-col bg-cream" style={{ minHeight: '100dvh' }}>
       {/* Status bar */}
       <div className="flex items-center justify-center h-[62px]">
         <span className="font-display font-semibold text-[15px] text-brutal-black">9:41</span>

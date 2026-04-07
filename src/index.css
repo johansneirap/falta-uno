@@ -16,7 +16,7 @@
 @layer components {
   /* Contenedor mobile-first centrado */
   .app-container {
-    @apply max-w-[480px] mx-auto min-h-screen relative;
+    @apply max-w-[480px] mx-auto relative;
   }
 
   /* Card neobrutalista base */
