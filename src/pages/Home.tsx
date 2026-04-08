@@ -24,6 +24,8 @@ export default function Home() {
   const [sport, setSport] = useState<SportFilter>('todos')
   const [level, setLevel] = useState<LevelFilter>('todos')
   const [search, setSearch] = useState('')
+  const [userCoords, setUserCoords] = useState<{ lat: number; lng: number } | null>(null)
+  const [locating, setLocating] = useState(false)
   const [toast, setToast] = useState(
     location.state?.cancelled ? 'Partido eliminado' :
     location.state?.completed ? '✅ Partido marcado como jugado' : ''
@@ -44,11 +46,39 @@ export default function Home() {
     ),
   ]
 
+  function handleNearMe() {
+    if (userCoords) { setUserCoords(null); return }
+    setLocating(true)
+    navigator.geolocation.getCurrentPosition(
+      ({ coords: { latitude, longitude } }) => {
+        setUserCoords({ lat: latitude, lng: longitude })
+        setLocating(false)
+      },
+      () => setLocating(false),
+      { timeout: 8000 }
+    )
+  }
+
+  function haversineKm(lat1: number, lng1: number, lat2: number, lng2: number) {
+    const R = 6371
+    const dLat = (lat2 - lat1) * Math.PI / 180
+    const dLng = (lng2 - lng1) * Math.PI / 180
+    const a = Math.sin(dLat / 2) ** 2 +
+      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLng / 2) ** 2
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+  }
+
   const filtered = search.trim()
-    ? games.filter(g =>
-        g.location_text.toLowerCase().includes(search.toLowerCase())
-      )
+    ? games.filter(g => g.location_text.toLowerCase().includes(search.toLowerCase()))
     : games
+
+  const sorted = userCoords
+    ? [...filtered].sort((a, b) => {
+        const distA = a.lat && a.lng ? haversineKm(userCoords.lat, userCoords.lng, a.lat, a.lng) : 999
+        const distB = b.lat && b.lng ? haversineKm(userCoords.lat, userCoords.lng, b.lat, b.lng) : 999
+        return distA - distB
+      })
+    : filtered
 
   function handleSportChange(value: SportFilter) {
     setSport(value)
@@ -77,6 +107,19 @@ export default function Home() {
       {/* Header */}
       <div className="flex items-center justify-between px-5 pt-4 pb-2">
         <h1 className="font-display font-extrabold text-[28px] text-brutal-black">FALTA 1</h1>
+        <button
+          onClick={handleNearMe}
+          disabled={locating}
+          className={`flex items-center gap-1.5 border-2 border-black rounded-full px-3 py-1.5
+                      font-display font-bold text-[12px]
+                      shadow-[2px_2px_0px_0px_#000000]
+                      transition-all active:shadow-none active:translate-x-[2px] active:translate-y-[2px]
+                      disabled:opacity-50
+                      ${userCoords ? 'bg-primary text-black' : 'bg-white text-brutal-black'}`}
+        >
+          <PinIcon />
+          {locating ? 'Buscando...' : userCoords ? 'Cerca de mí' : 'Cerca de mí'}
+        </button>
       </div>
 
       {/* Search */}
@@ -145,7 +188,7 @@ export default function Home() {
           </div>
         )}
 
-        {!loading && filtered.length === 0 && (
+        {!loading && sorted.length === 0 && (
           <div className="flex flex-col items-center gap-3 pt-16 text-center">
             <span className="text-5xl">🏟️</span>
             <p className="font-display font-bold text-[16px] text-brutal-black">
@@ -157,7 +200,7 @@ export default function Home() {
           </div>
         )}
 
-        {!loading && filtered.map(game => (
+        {!loading && sorted.map(game => (
           <GameCard key={game.id} game={game} joined={joinedGameIds.has(game.id)} />
         ))}
       </div>
@@ -169,6 +212,13 @@ function SearchIcon() {
   return (
     <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" className="text-gray-400 flex-shrink-0">
       <circle cx="11" cy="11" r="8" /><path d="M21 21l-4.35-4.35" />
+    </svg>
+  )
+}
+function PinIcon() {
+  return (
+    <svg width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+      <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z" /><circle cx="12" cy="10" r="3" />
     </svg>
   )
 }

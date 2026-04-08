@@ -318,6 +318,19 @@ export default function Profile() {
         ))}
       </div>
 
+      {/* Score de credibilidad */}
+      {(profile?.reputation_score ?? 0) > 0 && (
+        <div className="flex items-center gap-3 bg-primary/10 border-[2.5px] border-primary/40 rounded-[12px] px-4 py-3">
+          <span className="text-[28px]">★</span>
+          <div className="flex flex-col">
+            <span className="font-display font-extrabold text-[22px] text-primary leading-none">
+              {profile!.reputation_score}
+            </span>
+            <span className="font-body text-[12px] text-gray-500">puntos de credibilidad</span>
+          </div>
+        </div>
+      )}
+
       {/* Mis Deportes */}
       {activeSports.length > 0 && (
         <div className="flex flex-col gap-3">

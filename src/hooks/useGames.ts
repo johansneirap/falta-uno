@@ -53,6 +53,14 @@ export function useGames() {
     setJoinedGameIds(new Set((data ?? []).map((r: { game_id: string }) => r.game_id)))
   }
 
+  async function leaveGame(gameId: string, userId: string) {
+    const { error } = await supabase.rpc('leave_game', {
+      p_game_id: gameId,
+      p_user_id: userId,
+    })
+    return { error }
+  }
+
   async function cancelGame(gameId: string) {
     const { error } = await supabase
       .from('games')
@@ -62,12 +70,9 @@ export function useGames() {
   }
 
   async function completeGame(gameId: string) {
-    const { error } = await supabase
-      .from('games')
-      .update({ status: 'completed' })
-      .eq('id', gameId)
+    const { error } = await supabase.rpc('complete_game', { p_game_id: gameId })
     return { error }
   }
 
-  return { games, loading, error, joinedGameIds, fetchGames, fetchJoinedGameIds, createGame, cancelGame, completeGame }
+  return { games, loading, error, joinedGameIds, fetchGames, fetchJoinedGameIds, createGame, leaveGame, cancelGame, completeGame }
 }

@@ -30,7 +30,7 @@ export default function EditGame() {
         if (g) {
           setLocation(g.location_text)
           // datetime-local necesita formato "YYYY-MM-DDTHH:MM"
-          setDatetime(new Date(g.datetime).toISOString().slice(0, 16))
+          setDatetime(toLocalDatetimeString(new Date(g.datetime)))
           setSlots(String(g.slots_available))
         }
         setLoading(false)
@@ -63,7 +63,7 @@ export default function EditGame() {
       .from('games')
       .update({
         location_text: location.trim(),
-        datetime: new Date(datetime).toISOString(),
+        datetime: new Date(datetime).toISOString(), // convierte hora local a UTC antes de guardar
         slots_available: slotsNum,
         // Si hay cupos disponibles, el partido pasa a 'open' (por si estaba full)
         status: slotsNum > 0 ? 'open' : 'full',
@@ -74,11 +74,14 @@ export default function EditGame() {
     if (updateError) {
       setError('Error al guardar. Intenta nuevamente.')
     } else {
+      supabase.functions.invoke('notify-game-change', {
+        body: { game_id: game.id, change_type: 'edited' },
+      })
       navigate(`/partido/${game.id}`)
     }
   }
 
-  const minDatetime = new Date(Date.now() + 60 * 60 * 1000).toISOString().slice(0, 16)
+  const minDatetime = toLocalDatetimeString(new Date(Date.now() + 30 * 60 * 1000))
 
   if (loading) {
     return (
@@ -179,6 +182,11 @@ export default function EditGame() {
       </form>
     </div>
   )
+}
+
+function toLocalDatetimeString(date: Date) {
+  const pad = (n: number) => String(n).padStart(2, '0')
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`
 }
 
 function ArrowLeftIcon() {

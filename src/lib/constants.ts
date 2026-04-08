@@ -114,6 +114,7 @@ export interface Profile {
   soccer_level: Level | null
   tenis_level: Level | null
   basket_level: Level | null
+  reputation_score: number
   created_at: string
 }
 

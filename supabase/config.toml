@@ -1,2 +1,5 @@
 [functions.notify-join]
 verify_jwt = false
+
+[functions.notify-game-change]
+verify_jwt = false

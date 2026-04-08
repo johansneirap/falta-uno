@@ -19,9 +19,10 @@ interface PlayerCardProps {
   name: string
   phone: string | null
   sports: SportEntry[]
+  reputationScore?: number
 }
 
-export default function PlayerCard({ name, phone, sports }: PlayerCardProps) {
+export default function PlayerCard({ name, phone, sports, reputationScore = 0 }: PlayerCardProps) {
   const primarySport = sports[0]
 
   function handleContact() {
@@ -41,7 +42,14 @@ export default function PlayerCard({ name, phone, sports }: PlayerCardProps) {
     <div className="bg-white border-2 border-black rounded-[12px] shadow-brutal p-3.5 flex items-center gap-3 w-full">
       <Avatar name={name} size="md" />
       <div className="flex flex-col gap-1.5 flex-1 min-w-0">
-        <span className="font-display font-bold text-[14px] text-brutal-black">{name}</span>
+        <div className="flex items-center gap-2">
+          <span className="font-display font-bold text-[14px] text-brutal-black">{name}</span>
+          {reputationScore > 0 && (
+            <span className="flex items-center gap-0.5 bg-primary/20 border border-primary/40 rounded-full px-2 py-0.5 font-display font-bold text-[10px] text-primary">
+              ★ {reputationScore}
+            </span>
+          )}
+        </div>
 
         {/* Sports tags */}
         <div className="flex flex-wrap gap-1.5">

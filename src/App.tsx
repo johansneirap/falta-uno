@@ -10,6 +10,7 @@ import CreateGame from './pages/CreateGame'
 import GameDetail from './pages/GameDetail'
 import EditGame from './pages/EditGame'
 import Players from './pages/Players'
+import Notifications from './pages/Notifications'
 import Profile from './pages/Profile'
 
 function AppRoutes() {
@@ -78,6 +79,7 @@ function AppRoutes() {
       <Route path="/partido/:id" element={<GameDetail />} />
       <Route path="/partido/:id/editar" element={<EditGame />} />
       <Route path="/jugadores" element={<Layout><Players /></Layout>} />
+      <Route path="/notificaciones" element={<Layout><Notifications /></Layout>} />
       <Route path="/perfil" element={<Layout><Profile /></Layout>} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

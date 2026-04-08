@@ -32,6 +32,7 @@ export default function Players() {
         id: r.id,
         name: r.player?.name ?? 'Jugador',
         phone: r.player?.phone ?? null,
+        reputationScore: r.player?.reputation_score ?? 0,
         sports: [{ sport: r.sport, level: r.level, availabilityText: r.availability_text }] as SportEntry[],
       }))
     : Object.values(
@@ -42,12 +43,13 @@ export default function Players() {
               id: r.user_id,
               name: r.player?.name ?? 'Jugador',
               phone: r.player?.phone ?? null,
+              reputationScore: r.player?.reputation_score ?? 0,
               sports: [],
             }
           }
           acc[key].sports.push({ sport: r.sport, level: r.level, availabilityText: r.availability_text })
           return acc
-        }, {} as Record<string, { id: string; name: string; phone: string | null; sports: SportEntry[] }>)
+        }, {} as Record<string, { id: string; name: string; phone: string | null; reputationScore: number; sports: SportEntry[] }>)
       )
 
   const levelPills = [
@@ -162,6 +164,7 @@ export default function Players() {
             name={item.name}
             phone={item.phone}
             sports={item.sports}
+            reputationScore={item.reputationScore}
           />
         ))}
       </div>

@@ -3,7 +3,7 @@ import { supabase } from '../lib/supabase'
 import type { PlayerRequest, Sport, Level } from '../lib/constants'
 
 export interface PlayerRequestWithProfile extends PlayerRequest {
-  player: { id: string; name: string; phone: string | null }
+  player: { id: string; name: string; phone: string | null; reputation_score: number }
 }
 
 interface FetchOptions {
@@ -19,7 +19,7 @@ export function usePlayerRequests() {
     setLoading(true)
     let query = supabase
       .from('player_requests')
-      .select('*, player:profiles!player_requests_user_id_fkey(id, name, phone)')
+      .select('*, player:profiles!player_requests_user_id_fkey(id, name, phone, reputation_score)')
       .eq('status', 'active')
       .order('created_at', { ascending: false })
 

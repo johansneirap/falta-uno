@@ -77,7 +77,23 @@ Deno.serve(async (req) => {
 
   const resendBody = await resendRes.json()
   console.log('Resend status:', resendRes.status, JSON.stringify(resendBody))
-  console.log('Sending to:', organizerEmail, '| from domain:', Deno.env.get('EMAIL_DOMAIN') ?? 'resend.dev')
+
+  // Notificación in-app al organizador
+  const organizerId = (await supabase
+    .from('games')
+    .select('created_by')
+    .eq('id', game_id)
+    .single()).data?.created_by
+
+  if (organizerId) {
+    await supabase.from('notifications').insert({
+      user_id: organizerId,
+      type: 'join',
+      title: `${joiner.name} se unió a tu partido`,
+      body: `${sport} · ${format} en ${game.location_text}`,
+      game_id,
+    })
+  }
 
   return new Response(JSON.stringify({ ok: resendRes.ok, resend: resendBody }), {
     status: 200,

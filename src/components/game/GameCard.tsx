@@ -15,12 +15,22 @@ const FORMAT_LABEL: Record<string, string> = {
 
 function formatDatetime(iso: string) {
   const date = new Date(iso)
-  const day = date.toLocaleDateString('es-CL', { weekday: 'short' })
-  const num = date.getDate()
-  const month = date.toLocaleDateString('es-CL', { month: 'short' })
+  const now = new Date()
   const time = date.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' })
+
+  const isToday = date.toDateString() === now.toDateString()
+  const tomorrow = new Date(now)
+  tomorrow.setDate(tomorrow.getDate() + 1)
+  const isTomorrow = date.toDateString() === tomorrow.toDateString()
+
+  if (isToday) return `Hoy · ${time}`
+  if (isTomorrow) return `Mañana · ${time}`
+
   const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1).replace('.', '')
-  return `${cap(day)} ${num} ${cap(month)} · ${time}`
+  const day = cap(date.toLocaleDateString('es-CL', { weekday: 'short' }))
+  const num = date.getDate()
+  const month = cap(date.toLocaleDateString('es-CL', { month: 'short' }))
+  return `${day} ${num} ${month} · ${time}`
 }
 
 interface GameCardProps {

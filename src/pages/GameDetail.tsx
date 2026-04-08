@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import { supabase } from '../lib/supabase'
 import Avatar from '../components/ui/Avatar'
+import GameMap from '../components/ui/GameMap'
 import type { Game, Sport } from '../lib/constants'
 import { LEVEL_LABEL_MAP } from '../lib/constants'
 import { useGames } from '../hooks/useGames'
@@ -38,7 +39,7 @@ export default function GameDetail() {
   const navigate = useNavigate()
   const { user } = useAuth()
 
-  const { cancelGame, completeGame } = useGames()
+  const { cancelGame, completeGame, leaveGame } = useGames()
 
   const [game, setGame] = useState<GameWithRelations | null>(null)
   const [joins, setJoins] = useState<JoinWithPlayer[]>([])
@@ -48,6 +49,10 @@ export default function GameDetail() {
   const [cancelling, setCancelling] = useState(false)
   const [confirmCancel, setConfirmCancel] = useState(false)
   const [completing, setCompleting] = useState(false)
+  const [shareCopied, setShareCopied] = useState(false)
+  const [leaving, setLeaving] = useState(false)
+  const [confirmLeave, setConfirmLeave] = useState(false)
+  const [kickingUserId, setKickingUserId] = useState<string | null>(null)
 
   const alreadyJoined = joins.some(j => j.user_id === user?.id)
   const isOrganizer = game?.created_by === user?.id
@@ -58,7 +63,12 @@ export default function GameDetail() {
     setCancelling(true)
     const { error } = await cancelGame(game.id)
     setCancelling(false)
-    if (!error) navigate('/', { state: { cancelled: true } })
+    if (!error) {
+      supabase.functions.invoke('notify-game-change', {
+        body: { game_id: game.id, change_type: 'cancelled' },
+      })
+      navigate('/', { state: { cancelled: true } })
+    }
   }
 
   async function handleCompleteGame() {
@@ -111,6 +121,38 @@ export default function GameDetail() {
     }
   }
 
+  async function handleLeave() {
+    if (!user || !game) return
+    setLeaving(true)
+    const { error } = await leaveGame(game.id, user.id)
+    setLeaving(false)
+    if (!error) {
+      setConfirmLeave(false)
+      await loadGame()
+    }
+  }
+
+  async function handleKick(userId: string) {
+    if (!game) return
+    setKickingUserId(userId)
+    await leaveGame(game.id, userId)
+    setKickingUserId(null)
+    await loadGame()
+  }
+
+  function handleShare() {
+    const url = `${window.location.origin}/partido/${game?.id}`
+    const text = `¡Falta 1 para el partido de ${SPORT_LABEL[game?.sport as Sport]} en ${game?.location_text}! ¿Te apuntas?`
+    if (navigator.share) {
+      navigator.share({ title: 'Falta 1', text, url })
+    } else {
+      navigator.clipboard.writeText(url).then(() => {
+        setShareCopied(true)
+        setTimeout(() => setShareCopied(false), 2000)
+      })
+    }
+  }
+
   function openWhatsApp() {
     const phone = game?.organizer?.phone
     if (!phone) return
@@ -153,7 +195,17 @@ export default function GameDetail() {
         <button onClick={() => navigate(-1)} className="text-brutal-black">
           <ArrowLeftIcon />
         </button>
-        <h1 className="font-display font-bold text-[18px] text-brutal-black">Detalle del Partido</h1>
+        <h1 className="font-display font-bold text-[18px] text-brutal-black flex-1">Detalle del Partido</h1>
+        <button
+          onClick={handleShare}
+          className="flex items-center gap-1.5 border-2 border-black rounded-full px-3 py-1.5
+                     bg-white font-display font-bold text-[12px] text-brutal-black
+                     shadow-[2px_2px_0px_0px_#000000]
+                     transition-all active:shadow-none active:translate-x-[2px] active:translate-y-[2px]"
+        >
+          <ShareIcon />
+          {shareCopied ? '¡Copiado!' : 'Compartir'}
+        </button>
       </div>
 
       {/* Scrollable content */}
@@ -191,6 +243,10 @@ export default function GameDetail() {
               <span className="font-body text-[13px] text-brutal-black">{LEVEL_LABEL_MAP[game.level_required] ?? game.level_required}</span>
             </div>
           </div>
+
+          {game.lat && game.lng && (
+            <GameMap lat={game.lat} lng={game.lng} label={game.location_text} />
+          )}
 
           <div className="h-[1px] bg-black mx-0" />
 
@@ -232,12 +288,24 @@ export default function GameDetail() {
               {joins.map(j => (
                 <div key={j.user_id} className="flex items-center gap-3 bg-secondary/20 border-2 border-black rounded-[10px] p-3">
                   <Avatar name={j.player?.name ?? '?'} size="sm" />
-                  <div className="flex flex-col">
+                  <div className="flex flex-col flex-1">
                     <span className="font-display font-bold text-[13px] text-brutal-black">
                       {j.player?.name ?? 'Jugador'}
                     </span>
                     <span className="font-body text-[11px] text-gray-400">Vía Falta 1</span>
                   </div>
+                  {isOrganizer && (
+                    <button
+                      onClick={() => handleKick(j.user_id)}
+                      disabled={kickingUserId === j.user_id}
+                      className="w-7 h-7 flex items-center justify-center rounded-full
+                                 border-[1.5px] border-danger text-danger text-[14px]
+                                 transition-all active:opacity-70 disabled:opacity-40 flex-shrink-0"
+                      title="Expulsar del partido"
+                    >
+                      {kickingUserId === j.user_id ? '…' : '✕'}
+                    </button>
+                  )}
                 </div>
               ))}
 
@@ -364,11 +432,51 @@ export default function GameDetail() {
         <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[480px]
                         bg-cream border-t-[2.5px] border-black px-5 pt-4 pb-8">
           {alreadyJoined ? (
-            <div className="w-full h-[52px] flex items-center justify-center gap-2
-                            bg-white border-2 border-black rounded-[14px]">
-              <span className="text-xl">✅</span>
-              <span className="font-display font-bold text-[15px] text-brutal-black">¡Ya estás en el partido!</span>
-            </div>
+            confirmLeave ? (
+              <div className="flex flex-col gap-2">
+                <p className="font-body text-[13px] text-brutal-black text-center">
+                  ¿Seguro que quieres salir del partido?
+                </p>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setConfirmLeave(false)}
+                    className="flex-1 h-11 border-2 border-black rounded-[14px]
+                               font-display font-bold text-[13px] text-brutal-black
+                               transition-all active:opacity-70"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    onClick={handleLeave}
+                    disabled={leaving}
+                    className="flex-1 h-11 bg-danger border-2 border-black rounded-[14px]
+                               font-display font-bold text-[13px] text-white
+                               shadow-[3px_3px_0px_0px_#000000]
+                               transition-all active:shadow-none active:translate-x-[3px] active:translate-y-[3px]
+                               disabled:opacity-50"
+                  >
+                    {leaving ? 'Saliendo...' : 'Sí, salir'}
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="flex items-center gap-3">
+                <div className="flex-1 h-[52px] flex items-center justify-center gap-2
+                                bg-white border-2 border-black rounded-[14px]">
+                  <span className="text-xl">✅</span>
+                  <span className="font-display font-bold text-[15px] text-brutal-black">¡Ya estás!</span>
+                </div>
+                <button
+                  onClick={() => setConfirmLeave(true)}
+                  className="h-[52px] px-4 flex items-center justify-center
+                             border-2 border-danger rounded-[14px]
+                             font-display font-bold text-[13px] text-danger
+                             transition-all active:opacity-70"
+                >
+                  Salir
+                </button>
+              </div>
+            )
           ) : isFull ? (
             <div className="w-full h-[52px] flex items-center justify-center
                             bg-white border-2 border-gray-300 rounded-[14px]">
@@ -433,6 +541,14 @@ function ChatIcon() {
   return (
     <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
       <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
+    </svg>
+  )
+}
+function ShareIcon() {
+  return (
+    <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+      <circle cx="18" cy="5" r="3" /><circle cx="6" cy="12" r="3" /><circle cx="18" cy="19" r="3" />
+      <path d="M8.59 13.51l6.83 3.98M15.41 6.51l-6.82 3.98" />
     </svg>
   )
 }

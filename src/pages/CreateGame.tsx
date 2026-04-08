@@ -5,6 +5,7 @@ import { useGames } from '../hooks/useGames'
 import { SPORTS, FORMATS, DEFAULT_SLOTS, LEVELS_BY_SPORT, LEVELS_GENERIC } from '../lib/constants'
 import { supabase } from '../lib/supabase'
 import type { Sport, Level, GameFormat } from '../lib/constants'
+import LocationPicker from '../components/ui/LocationPicker'
 
 export default function CreateGame() {
   const navigate = useNavigate()
@@ -17,6 +18,8 @@ export default function CreateGame() {
   const [datetime, setDatetime] = useState('')
   const [slots, setSlots] = useState('')
   const [level, setLevel] = useState<Level | ''>('')
+  const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null)
+  const [showMap, setShowMap] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [activeGamesCount, setActiveGamesCount] = useState(0)
@@ -69,10 +72,10 @@ export default function CreateGame() {
       sport: sport as Sport,
       format: format as GameFormat,
       level_required: level as Level,
-      datetime,
+      datetime: new Date(datetime).toISOString(),
       location_text: location,
-      lat: null,
-      lng: null,
+      lat: coords?.lat ?? null,
+      lng: coords?.lng ?? null,
       slots_total: slotsTotal,
       slots_available: slotsNum,
     })
@@ -85,11 +88,17 @@ export default function CreateGame() {
     }
   }
 
-  const minDatetime = new Date(Date.now() + 60 * 60 * 1000)
-    .toISOString().slice(0, 16)
+  const minDatetime = toLocalDatetimeString(new Date(Date.now() + 30 * 60 * 1000))
 
   return (
     <div className="flex flex-col h-full">
+      {showMap && (
+        <LocationPicker
+          initialCoords={coords ?? undefined}
+          onConfirm={c => { setCoords(c); setShowMap(false) }}
+          onClose={() => setShowMap(false)}
+        />
+      )}
       {/* Header */}
       <div className="flex items-center gap-3 px-5 pt-4 pb-2">
         <button
@@ -154,7 +163,17 @@ export default function CreateGame() {
 
         {/* Ubicación */}
         <div className="flex flex-col gap-1.5">
-          <label className="font-body font-medium text-sm text-brutal-black">Ubicación</label>
+          <div className="flex items-center justify-between">
+            <label className="font-body font-medium text-sm text-brutal-black">Ubicación</label>
+            <button
+              type="button"
+              onClick={() => setShowMap(true)}
+              className="flex items-center gap-1 font-body text-[12px] font-medium text-primary"
+            >
+              <PinIcon />
+              {coords ? '✓ Ubicación en mapa' : 'Marcar en mapa'}
+            </button>
+          </div>
           <input
             type="text"
             value={location}
@@ -242,10 +261,22 @@ export default function CreateGame() {
   )
 }
 
+function toLocalDatetimeString(date: Date) {
+  const pad = (n: number) => String(n).padStart(2, '0')
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`
+}
+
 function ArrowLeftIcon() {
   return (
     <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
       <path d="M19 12H5M12 5l-7 7 7 7" />
+    </svg>
+  )
+}
+function PinIcon() {
+  return (
+    <svg width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+      <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z" /><circle cx="12" cy="10" r="3" />
     </svg>
   )
 }

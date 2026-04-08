@@ -11,14 +11,14 @@ const NAV_ITEMS: NavItem[] = [
   { to: '/', label: 'HOME', icon: HomeIcon },
   { to: '/crear', label: 'CREAR', icon: PlusIcon },
   { to: '/jugadores', label: 'JUGADORES', icon: UsersIcon },
+  { to: '/notificaciones', label: 'AVISOS', icon: BellIcon },
   { to: '/perfil', label: 'PERFIL', icon: UserIcon },
 ]
 
-export default function Navbar() {
+export default function Navbar({ unreadCount = 0 }: { unreadCount?: number }) {
   return (
     <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[480px] z-50
                     flex justify-center px-[21px] pt-3 pb-[21px] bg-cream">
-      {/* Pill contenedor */}
       <div className="w-full h-[62px] bg-white border-2 border-black rounded-[36px]
                       shadow-[3px_3px_0px_0px_#000000] flex p-1">
         {NAV_ITEMS.map(({ to, label, icon: Icon }) => (
@@ -33,10 +33,17 @@ export default function Navbar() {
           >
             {({ isActive }) => (
               <>
-                <span className={isActive ? 'text-black' : 'text-gray-400'}>
+                <span className={`relative ${isActive ? 'text-black' : 'text-gray-400'}`}>
                   <Icon />
+                  {to === '/notificaciones' && unreadCount > 0 && (
+                    <span className="absolute -top-1 -right-1.5 min-w-[14px] h-[14px] bg-danger border border-white
+                                     rounded-full flex items-center justify-center
+                                     font-display font-bold text-[9px] text-white px-[3px]">
+                      {unreadCount > 9 ? '9+' : unreadCount}
+                    </span>
+                  )}
                 </span>
-                <span className={`font-body font-semibold text-[10px] tracking-[0.5px]
+                <span className={`font-body font-semibold text-[9px] tracking-[0.5px]
                                   ${isActive ? 'text-black' : 'text-gray-400'}`}>
                   {label}
                 </span>
@@ -57,7 +64,6 @@ function HomeIcon() {
     </svg>
   )
 }
-
 function PlusIcon() {
   return (
     <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
@@ -66,7 +72,6 @@ function PlusIcon() {
     </svg>
   )
 }
-
 function UsersIcon() {
   return (
     <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
@@ -76,7 +81,14 @@ function UsersIcon() {
     </svg>
   )
 }
-
+function BellIcon() {
+  return (
+    <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+      <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9" />
+      <path d="M13.73 21a2 2 0 01-3.46 0" />
+    </svg>
+  )
+}
 function UserIcon() {
   return (
     <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
