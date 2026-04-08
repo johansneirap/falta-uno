@@ -7,6 +7,7 @@ import GameMap from '../components/ui/GameMap'
 import type { Game, Sport } from '../lib/constants'
 import { LEVEL_LABEL_MAP } from '../lib/constants'
 import { useGames } from '../hooks/useGames'
+import { track } from '../lib/analytics'
 
 const SPORT_EMOJI: Record<string, string> = {
   padel: '🎾', futbol: '⚽', tenis: '🎾', basket: '🏀',
@@ -64,6 +65,7 @@ export default function GameDetail() {
     const { error } = await cancelGame(game.id)
     setCancelling(false)
     if (!error) {
+      track('game_cancelled', user?.id, { game_id: game.id })
       supabase.functions.invoke('notify-game-change', {
         body: { game_id: game.id, change_type: 'cancelled' },
       })
@@ -76,7 +78,10 @@ export default function GameDetail() {
     setCompleting(true)
     const { error } = await completeGame(game.id)
     setCompleting(false)
-    if (!error) navigate('/', { state: { completed: true } })
+    if (!error) {
+      track('game_completed', user?.id, { game_id: game.id })
+      navigate('/', { state: { completed: true } })
+    }
   }
 
   useEffect(() => {
@@ -114,8 +119,8 @@ export default function GameDetail() {
     if (error) {
       setJoinError(error.message ?? 'No se pudo unir al partido')
     } else {
+      track('game_joined', user.id, { game_id: game.id, sport: game.sport })
       await loadGame()
-      // Notificar al organizador (fire and forget — no bloquea el flujo)
       supabase.functions.invoke('notify-join', { body: { game_id: game.id, joiner_id: user.id } })
       openWhatsApp()
     }
@@ -127,6 +132,7 @@ export default function GameDetail() {
     const { error } = await leaveGame(game.id, user.id)
     setLeaving(false)
     if (!error) {
+      track('game_left', user.id, { game_id: game.id })
       setConfirmLeave(false)
       await loadGame()
     }
@@ -143,6 +149,7 @@ export default function GameDetail() {
   function handleShare() {
     const url = `${window.location.origin}/partido/${game?.id}`
     const text = `¡Falta 1 para el partido de ${SPORT_LABEL[game?.sport as Sport]} en ${game?.location_text}! ¿Te apuntas?`
+    track('share_tapped', user?.id, { game_id: game?.id })
     if (navigator.share) {
       navigator.share({ title: 'Falta 1', text, url })
     } else {

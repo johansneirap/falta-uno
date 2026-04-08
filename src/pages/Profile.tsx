@@ -6,6 +6,7 @@ import Avatar from '../components/ui/Avatar'
 import { supabase } from '../lib/supabase'
 import type { Sport, Level } from '../lib/constants'
 import { LEVELS_BY_SPORT, LEVEL_LABEL_MAP, LEVEL_COLOR_MAP } from '../lib/constants'
+import { track } from '../lib/analytics'
 
 const SPORTS_CONFIG = [
   { key: 'padel', levelKey: 'padel_level', label: 'Pádel', emoji: '🎾' },
@@ -143,6 +144,7 @@ export default function Profile() {
     })
     setQSaving(false)
     if (!error) {
+      track('availability_posted', user?.id, { sport: qSport, level: qLevel })
       setQSuccess(true)
       // Refrescar lista de disponibilidades
       if (user) {

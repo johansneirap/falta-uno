@@ -6,6 +6,7 @@ import { SPORTS, FORMATS, DEFAULT_SLOTS, LEVELS_BY_SPORT, LEVELS_GENERIC } from 
 import { supabase } from '../lib/supabase'
 import type { Sport, Level, GameFormat } from '../lib/constants'
 import LocationPicker from '../components/ui/LocationPicker'
+import { track } from '../lib/analytics'
 
 export default function CreateGame() {
   const navigate = useNavigate()
@@ -84,6 +85,7 @@ export default function CreateGame() {
     if (error) {
       setError('Error al crear el partido. Intenta nuevamente.')
     } else {
+      track('game_created', user.id, { sport, format, has_coords: !!coords })
       navigate('/')
     }
   }
