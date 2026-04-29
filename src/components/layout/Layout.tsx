@@ -11,16 +11,29 @@ interface LayoutProps {
 
 export default function Layout({ children }: LayoutProps) {
   const { user } = useAuth()
-  const { unreadCount, fetchNotifications } = useNotifications()
+  const {
+    unreadCount,
+    fetchNotifications,
+    subscribeToNotifications,
+    unsubscribeFromNotifications,
+  } = useNotifications()
   const location = useLocation()
 
+  // Fetch inicial y re-fetch en cada cambio de ruta
   useEffect(() => {
     if (user) fetchNotifications(user.id)
   }, [user, location.pathname])
 
+  // Suscripción realtime — solo una vez al montar
+  useEffect(() => {
+    if (!user) return
+    subscribeToNotifications(user.id)
+    return () => unsubscribeFromNotifications()
+  }, [user?.id])
+
   return (
     <div className="app-container">
-      <main className="pb-20 min-h-screen">
+      <main className="pb-safe-20 min-h-dvh">
         {children}
       </main>
       <Navbar unreadCount={unreadCount} />

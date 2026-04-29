@@ -4,7 +4,7 @@ import { useAuth } from '../hooks/useAuth'
 import GameCard from '../components/game/GameCard'
 import type { Sport, Level } from '../lib/constants'
 import { LEVELS_BY_SPORT, LEVELS_GENERIC } from '../lib/constants'
-import { useLocation } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 
 type SportFilter = Sport | 'todos'
 type LevelFilter = Level | 'todos'
@@ -21,8 +21,10 @@ export default function Home() {
   const { games, loading, joinedGameIds, fetchGames, fetchJoinedGameIds } = useGames()
   const { user } = useAuth()
   const location = useLocation()
+  const navigate = useNavigate()
   const [sport, setSport] = useState<SportFilter>('todos')
   const [level, setLevel] = useState<LevelFilter>('todos')
+  const [dateFilter, setDateFilter] = useState<'todos' | 'hoy' | 'semana'>('todos')
   const [search, setSearch] = useState('')
   const [userCoords, setUserCoords] = useState<{ lat: number; lng: number } | null>(null)
   const [locating, setLocating] = useState(false)
@@ -68,9 +70,19 @@ export default function Home() {
     return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
   }
 
-  const filtered = search.trim()
-    ? games.filter(g => g.location_text.toLowerCase().includes(search.toLowerCase()))
-    : games
+  const now = new Date()
+  const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+  const endOfToday = new Date(startOfToday.getTime() + 86400000)
+  const endOfWeek = new Date(startOfToday.getTime() + 7 * 86400000)
+
+  const filtered = games
+    .filter(g => !search.trim() || g.location_text.toLowerCase().includes(search.toLowerCase()))
+    .filter(g => {
+      if (dateFilter === 'todos') return true
+      const d = new Date(g.datetime)
+      if (dateFilter === 'hoy') return d >= startOfToday && d < endOfToday
+      return d >= startOfToday && d < endOfWeek
+    })
 
   const sorted = userCoords
     ? [...filtered].sort((a, b) => {
@@ -178,6 +190,29 @@ export default function Home() {
         ))}
       </div>
 
+      {/* Date filter pills */}
+      <div className="flex gap-2 px-5 pb-2 overflow-x-auto scrollbar-none">
+        {([
+          { value: 'todos', label: 'Todos' },
+          { value: 'hoy', label: 'Hoy' },
+          { value: 'semana', label: 'Esta semana' },
+        ] as const).map(pill => (
+          <button
+            key={pill.value}
+            onClick={() => setDateFilter(pill.value)}
+            className={`flex-shrink-0 font-body text-[12px] font-semibold
+                        border-2 border-black rounded-full px-3 py-1.5
+                        shadow-[2px_2px_0px_0px_#000000]
+                        transition-all active:shadow-none active:translate-x-[2px] active:translate-y-[2px]
+                        ${dateFilter === pill.value
+                          ? 'bg-accent-yellow text-brutal-black'
+                          : 'bg-white text-brutal-black'}`}
+          >
+            {pill.label}
+          </button>
+        ))}
+      </div>
+
       {/* Cards list */}
       <div className="flex flex-col gap-3 px-5 pt-3 pb-4 overflow-y-auto flex-1">
         {loading && (
@@ -189,13 +224,31 @@ export default function Home() {
         )}
 
         {!loading && sorted.length === 0 && (
-          <div className="flex flex-col items-center gap-3 pt-16 text-center">
-            <span className="text-5xl">🏟️</span>
-            <p className="font-display font-bold text-[16px] text-brutal-black">
-              {search ? 'Sin resultados para esa búsqueda' : 'No hay partidos disponibles'}
-            </p>
-            {!search && (
-              <p className="font-body text-[13px] text-gray-400">¡Sé el primero en crear uno!</p>
+          <div className="flex flex-col items-center gap-5 pt-12 text-center">
+            <div className="w-20 h-20 bg-accent-blue border-2 border-black rounded-[20px] shadow-brutal flex items-center justify-center text-4xl">
+              🏟️
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <p className="font-display font-bold text-[16px] text-brutal-black">
+                {search ? 'Sin resultados' : dateFilter !== 'todos' ? 'Nada por ahora' : 'No hay partidos aún'}
+              </p>
+              <p className="font-body text-[13px] text-gray-400">
+                {search
+                  ? 'Prueba con otro deporte o nivel'
+                  : dateFilter === 'hoy'
+                    ? 'No hay partidos para hoy'
+                    : dateFilter === 'semana'
+                      ? 'No hay partidos esta semana'
+                      : '¡Sé el primero en crear uno!'}
+              </p>
+            </div>
+            {!search && dateFilter === 'todos' && (
+              <button
+                onClick={() => navigate('/crear')}
+                className="btn bg-primary px-5 py-2.5 text-[13px] text-black"
+              >
+                + Crear partido
+              </button>
             )}
           </div>
         )}

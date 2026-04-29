@@ -1,12 +1,18 @@
 import { useNavigate } from 'react-router-dom'
 import type { Game, Sport } from '../../lib/constants'
-import { LEVEL_LABEL_MAP, LEVEL_COLOR_MAP } from '../../lib/constants'
+import { LEVEL_COLOR_MAP, formatLevelRange } from '../../lib/constants'
 
 const SPORT_EMOJI: Record<Sport, string> = {
   padel: '🎾', futbol: '⚽', tenis: '🎾', basket: '🏀',
 }
 const SPORT_LABEL: Record<Sport, string> = {
   padel: 'Pádel', futbol: 'Fútbol', tenis: 'Tenis', basket: 'Básket',
+}
+const SPORT_COLOR: Record<Sport, string> = {
+  padel: 'bg-accent-blue',
+  futbol: 'bg-secondary',
+  tenis: 'bg-accent-yellow',
+  basket: 'bg-primary',
 }
 const FORMAT_LABEL: Record<string, string> = {
   dobles: 'Dobles', singles: 'Singles',
@@ -51,7 +57,7 @@ export default function GameCard({ game, joined = false }: GameCardProps) {
     >
       {/* Top: deporte + badges */}
       <div className="flex items-center justify-between gap-2">
-        <span className="font-display font-bold text-[15px] text-brutal-black">
+        <span className={`font-display font-bold text-[13px] text-brutal-black border-[1.5px] border-black rounded-full px-3 py-1 ${SPORT_COLOR[game.sport]}`}>
           {SPORT_EMOJI[game.sport]} {SPORT_LABEL[game.sport]} · {FORMAT_LABEL[game.format] ?? game.format}
         </span>
         <div className="flex items-center gap-1.5 flex-shrink-0">
@@ -61,7 +67,7 @@ export default function GameCard({ game, joined = false }: GameCardProps) {
             </span>
           )}
           <span className={`text-xs font-display font-bold border-[1.5px] border-black rounded-full px-[10px] py-1 ${LEVEL_COLOR_MAP[game.level_required] ?? 'bg-gray-100 text-gray-800'}`}>
-            {LEVEL_LABEL_MAP[game.level_required] ?? game.level_required}
+            {formatLevelRange(game.level_required, game.level_max)}
           </span>
         </div>
       </div>

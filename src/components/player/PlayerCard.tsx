@@ -45,7 +45,7 @@ export default function PlayerCard({ name, phone, sports, reputationScore = 0 }:
         <div className="flex items-center gap-2">
           <span className="font-display font-bold text-[14px] text-brutal-black">{name}</span>
           {reputationScore > 0 && (
-            <span className="flex items-center gap-0.5 bg-primary/20 border border-primary/40 rounded-full px-2 py-0.5 font-display font-bold text-[10px] text-primary">
+            <span className="flex items-center gap-0.5 bg-primary border border-black rounded-full px-2 py-0.5 font-display font-bold text-[10px] text-black">
               ★ {reputationScore}
             </span>
           )}
@@ -66,7 +66,7 @@ export default function PlayerCard({ name, phone, sports, reputationScore = 0 }:
         </div>
 
         {availabilityText && (
-          <span className="font-body text-[11px] text-gray-400 truncate">{availabilityText}</span>
+          <span className="font-body text-[11px] text-black bg-accent-lilac border border-black rounded-full px-2 py-0.5 truncate self-start">{availabilityText}</span>
         )}
       </div>
       <button

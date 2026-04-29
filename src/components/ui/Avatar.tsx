@@ -6,8 +6,8 @@ interface AvatarProps {
 }
 
 const BG_COLORS = [
-  'bg-primary', 'bg-secondary', 'bg-blue-400',
-  'bg-purple-400', 'bg-pink-400', 'bg-yellow-400',
+  'bg-primary', 'bg-secondary', 'bg-accent-blue',
+  'bg-accent-lilac', 'bg-danger', 'bg-accent-yellow',
 ]
 
 const SIZES: Record<AvatarSize, string> = {

@@ -19,6 +19,7 @@ export default function CreateGame() {
   const [datetime, setDatetime] = useState('')
   const [slots, setSlots] = useState('')
   const [level, setLevel] = useState<Level | ''>('')
+  const [levelMax, setLevelMax] = useState<Level | ''>('')
   const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null)
   const [showMap, setShowMap] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -44,6 +45,7 @@ export default function CreateGame() {
     setFormat('')
     setSlots('')
     setLevel('')
+    setLevelMax('')
   }
 
   function handleFormatChange(value: GameFormat) {
@@ -73,6 +75,7 @@ export default function CreateGame() {
       sport: sport as Sport,
       format: format as GameFormat,
       level_required: level as Level,
+      level_max: levelMax ? (levelMax as Level) : null,
       datetime: new Date(datetime).toISOString(),
       location_text: location,
       lat: coords?.lat ?? null,
@@ -219,12 +222,12 @@ export default function CreateGame() {
           />
         </div>
 
-        {/* Nivel */}
+        {/* Nivel mínimo */}
         <div className="flex flex-col gap-1.5">
           <label className="font-body font-medium text-sm text-brutal-black">Nivel requerido</label>
           <select
             value={level}
-            onChange={e => setLevel(e.target.value as Level)}
+            onChange={e => { setLevel(e.target.value as Level); setLevelMax('') }}
             required
             className="w-full h-11 px-3 border-2 border-black rounded-[10px] bg-white font-body text-brutal-black
                        focus:outline-none focus:ring-2 focus:ring-primary shadow-[3px_3px_0px_0px_#000000] appearance-none"
@@ -235,6 +238,26 @@ export default function CreateGame() {
             ))}
           </select>
         </div>
+
+        {/* Nivel máximo (rango opcional) */}
+        {level && (
+          <div className="flex flex-col gap-1.5">
+            <label className="font-body font-medium text-sm text-brutal-black">
+              ¿Aceptas otro nivel? <span className="font-normal text-gray-400">(opcional)</span>
+            </label>
+            <select
+              value={levelMax}
+              onChange={e => setLevelMax(e.target.value as Level)}
+              className="w-full h-11 px-3 border-2 border-black rounded-[10px] bg-white font-body text-brutal-black
+                         focus:outline-none focus:ring-2 focus:ring-primary shadow-[3px_3px_0px_0px_#000000] appearance-none"
+            >
+              <option value="">Solo este nivel</option>
+              {[...levelOptions].filter(l => l.value !== level).map(l => (
+                <option key={l.value} value={l.value}>{l.label}</option>
+              ))}
+            </select>
+          </div>
+        )}
 
         {error && (
           <p className="font-body text-[13px] text-danger">{error}</p>

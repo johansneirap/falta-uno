@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { supabase } from '../lib/supabase'
 
 export interface AppNotification {
@@ -14,6 +14,7 @@ export interface AppNotification {
 export function useNotifications() {
   const [notifications, setNotifications] = useState<AppNotification[]>([])
   const [loading, setLoading] = useState(false)
+  const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null)
 
   async function fetchNotifications(userId: string) {
     setLoading(true)
@@ -25,6 +26,37 @@ export function useNotifications() {
       .limit(50)
     setLoading(false)
     setNotifications((data ?? []) as AppNotification[])
+  }
+
+  function subscribeToNotifications(userId: string) {
+    // Evitar suscripciones duplicadas
+    if (channelRef.current) return
+
+    const channel = supabase
+      .channel(`notifications:${userId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'notifications',
+          filter: `user_id=eq.${userId}`,
+        },
+        (payload) => {
+          const newNotif = payload.new as AppNotification
+          setNotifications(prev => [newNotif, ...prev])
+        }
+      )
+      .subscribe()
+
+    channelRef.current = channel
+  }
+
+  function unsubscribeFromNotifications() {
+    if (channelRef.current) {
+      supabase.removeChannel(channelRef.current)
+      channelRef.current = null
+    }
   }
 
   async function markAllRead(userId: string) {
@@ -48,5 +80,14 @@ export function useNotifications() {
 
   const unreadCount = notifications.filter(n => !n.read).length
 
-  return { notifications, loading, unreadCount, fetchNotifications, markAllRead, markOneRead }
+  return {
+    notifications,
+    loading,
+    unreadCount,
+    fetchNotifications,
+    subscribeToNotifications,
+    unsubscribeFromNotifications,
+    markAllRead,
+    markOneRead,
+  }
 }

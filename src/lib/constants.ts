@@ -43,15 +43,15 @@ export const LEVEL_LABEL_MAP: Record<string, string> = {
 
 // Mapa color badge → todos los niveles posibles
 export const LEVEL_COLOR_MAP: Record<string, string> = {
-  recreacional: 'bg-purple-100 text-purple-800',
-  principiante: 'bg-blue-100 text-blue-800',
-  intermedio: 'bg-yellow-100 text-yellow-800',
-  avanzado: 'bg-red-100 text-red-800',
-  '6ta': 'bg-green-100 text-green-800',
-  '5ta': 'bg-teal-100 text-teal-800',
-  '4ta': 'bg-yellow-100 text-yellow-800',
-  '3ra': 'bg-orange-100 text-orange-800',
-  '2da': 'bg-red-100 text-red-800',
+  recreacional: 'bg-accent-lilac text-black',
+  principiante: 'bg-secondary text-black',
+  intermedio: 'bg-primary text-black',
+  avanzado: 'bg-danger text-black',
+  '6ta': 'bg-accent-blue text-black',
+  '5ta': 'bg-secondary text-black',
+  '4ta': 'bg-accent-yellow text-black',
+  '3ra': 'bg-primary text-black',
+  '2da': 'bg-danger text-black',
 }
 
 export const FORMATS = {
@@ -124,6 +124,7 @@ export interface Game {
   sport: Sport
   format: GameFormat
   level_required: Level
+  level_max: Level | null
   datetime: string
   location_text: string
   lat: number | null
@@ -132,6 +133,13 @@ export interface Game {
   slots_available: number
   status: GameStatus
   created_at: string
+}
+
+export function formatLevelRange(levelRequired: Level, levelMax: Level | null | undefined): string {
+  const min = LEVEL_LABEL_MAP[levelRequired] ?? levelRequired
+  if (!levelMax) return min
+  const max = LEVEL_LABEL_MAP[levelMax] ?? levelMax
+  return `${min} – ${max}`
 }
 
 export interface GameJoin {

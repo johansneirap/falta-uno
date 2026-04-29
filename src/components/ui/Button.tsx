@@ -7,7 +7,7 @@ const VARIANTS: Record<Variant, string> = {
   primary: 'bg-primary text-black',
   secondary: 'bg-secondary text-black',
   outline: 'bg-white text-black',
-  danger: 'bg-danger text-white',
+  danger: 'bg-danger text-black',
 }
 
 const SIZES: Record<Size, string> = {

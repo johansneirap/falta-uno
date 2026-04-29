@@ -5,9 +5,14 @@ export default {
     extend: {
       colors: {
         cream: '#F5F0E8',
-        primary: '#F97316',
-        secondary: '#22C55E',
-        danger: '#EF4444',
+        primary: '#FFC097',
+        secondary: '#A8E6B4',
+        danger: '#F4A8B0',
+        accent: {
+          blue: '#A8C8F0',
+          lilac: '#C4AEED',
+          yellow: '#FFE599',
+        },
         brutal: {
           black: '#1A1A1A',
           border: '#000000',

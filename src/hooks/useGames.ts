@@ -25,7 +25,7 @@ export function useGames() {
       .order('datetime', { ascending: true })
 
     if (sport && sport !== 'todos') query = query.eq('sport', sport)
-    if (level && level !== 'todos') query = query.eq('level_required', level)
+    if (level && level !== 'todos') query = query.or(`level_required.eq.${level},level_max.eq.${level}`)
 
     const { data, error } = await query
     setLoading(false)

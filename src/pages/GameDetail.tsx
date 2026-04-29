@@ -5,7 +5,7 @@ import { supabase } from '../lib/supabase'
 import Avatar from '../components/ui/Avatar'
 import GameMap from '../components/ui/GameMap'
 import type { Game, Sport } from '../lib/constants'
-import { LEVEL_LABEL_MAP } from '../lib/constants'
+import { formatLevelRange } from '../lib/constants'
 import { useGames } from '../hooks/useGames'
 import { track } from '../lib/analytics'
 
@@ -147,13 +147,28 @@ export default function GameDetail() {
   }
 
   function handleShare() {
-    const url = `${window.location.origin}/partido/${game?.id}`
-    const text = `¡Falta 1 para el partido de ${SPORT_LABEL[game?.sport as Sport]} en ${game?.location_text}! ¿Te apuntas?`
-    track('share_tapped', user?.id, { game_id: game?.id })
+    if (!game) return
+    const url = `${window.location.origin}/s/${game.id}`
+    const sport = SPORT_LABEL[game.sport as Sport] ?? game.sport
+    const format = FORMAT_LABEL[game.format] ?? game.format
+    const date = new Date(game.datetime)
+    const dateStr = date.toLocaleDateString('es-CL', { weekday: 'long', day: 'numeric', month: 'long' })
+    const timeStr = date.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' })
+    const slots = game.slots_available
+    const text = [
+      `⚡ ¡Falta${slots === 1 ? ' 1' : `n ${slots}`} para el partido de ${sport} (${format})!`,
+      `📍 ${game.location_text}`,
+      `📅 ${dateStr} · ${timeStr}`,
+      `🏅 Nivel: ${game.level_required}`,
+      `👉 ${url}`,
+    ].join('\n')
+
+    track('share_tapped', user?.id, { game_id: game.id })
+
     if (navigator.share) {
-      navigator.share({ title: 'Falta 1', text, url })
+      navigator.share({ title: `Partido de ${sport} — Falta 1`, text, url })
     } else {
-      navigator.clipboard.writeText(url).then(() => {
+      navigator.clipboard.writeText(text).then(() => {
         setShareCopied(true)
         setTimeout(() => setShareCopied(false), 2000)
       })
@@ -171,7 +186,7 @@ export default function GameDetail() {
 
   if (loading) {
     return (
-      <div className="app-container flex items-center justify-center min-h-screen bg-cream">
+      <div className="app-container flex items-center justify-center min-h-dvh bg-cream">
         <svg className="animate-spin text-primary" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
           <path d="M12 2a10 10 0 0 1 10 10" strokeLinecap="round" />
         </svg>
@@ -181,7 +196,7 @@ export default function GameDetail() {
 
   if (!game) {
     return (
-      <div className="app-container flex flex-col items-center justify-center min-h-screen bg-cream gap-4">
+      <div className="app-container flex flex-col items-center justify-center min-h-dvh bg-cream gap-4">
         <span className="text-5xl">🏟️</span>
         <p className="font-display font-bold text-brutal-black">Partido no encontrado</p>
         <button onClick={() => navigate('/')} className="font-display font-bold text-primary underline">
@@ -196,7 +211,7 @@ export default function GameDetail() {
   const dummyCount = Math.max(0, game.slots_total - game.slots_available - 1 - joins.length)
 
   return (
-    <div className="app-container flex flex-col bg-cream min-h-screen">
+    <div className="app-container flex flex-col bg-cream min-h-dvh">
       {/* Header */}
       <div className="flex items-center gap-3 px-5 pt-5 pb-3">
         <button onClick={() => navigate(-1)} className="text-brutal-black">
@@ -247,7 +262,7 @@ export default function GameDetail() {
             </div>
             <div className="flex items-start gap-3">
               <SignalIcon />
-              <span className="font-body text-[13px] text-brutal-black">{LEVEL_LABEL_MAP[game.level_required] ?? game.level_required}</span>
+              <span className="font-body text-[13px] text-brutal-black">{formatLevelRange(game.level_required, game.level_max)}</span>
             </div>
           </div>
 
@@ -525,21 +540,21 @@ function ArrowLeftIcon() {
 }
 function MapPinIcon() {
   return (
-    <svg width="20" height="20" fill="none" stroke="#F97316" strokeWidth="2" viewBox="0 0 24 24" className="flex-shrink-0 mt-0.5">
+    <svg width="20" height="20" fill="none" stroke="#FFC097" strokeWidth="2" viewBox="0 0 24 24" className="flex-shrink-0 mt-0.5">
       <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z" /><circle cx="12" cy="10" r="3" />
     </svg>
   )
 }
 function CalendarIcon() {
   return (
-    <svg width="20" height="20" fill="none" stroke="#F97316" strokeWidth="2" viewBox="0 0 24 24" className="flex-shrink-0 mt-0.5">
+    <svg width="20" height="20" fill="none" stroke="#FFC097" strokeWidth="2" viewBox="0 0 24 24" className="flex-shrink-0 mt-0.5">
       <rect x="3" y="4" width="18" height="18" rx="2" /><path d="M16 2v4M8 2v4M3 10h18" />
     </svg>
   )
 }
 function SignalIcon() {
   return (
-    <svg width="20" height="20" fill="none" stroke="#F97316" strokeWidth="2" viewBox="0 0 24 24" className="flex-shrink-0 mt-0.5">
+    <svg width="20" height="20" fill="none" stroke="#FFC097" strokeWidth="2" viewBox="0 0 24 24" className="flex-shrink-0 mt-0.5">
       <path d="M2 20h.01M7 20v-4M12 20v-8M17 20V8M22 4v16" />
     </svg>
   )

@@ -78,6 +78,7 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
     if (error) {
       setError('Hubo un problema. Intenta nuevamente.')
     } else {
+      supabase.functions.invoke('welcome-email', { body: { user_id: user.id } })
       onComplete()
     }
   }

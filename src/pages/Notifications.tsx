@@ -60,12 +60,16 @@ export default function Notifications() {
         )}
 
         {!loading && notifications.length === 0 && (
-          <div className="flex flex-col items-center gap-3 pt-16 text-center">
-            <span className="text-5xl">🔔</span>
-            <p className="font-display font-bold text-[16px] text-brutal-black">Sin notificaciones</p>
-            <p className="font-body text-[13px] text-gray-400">
-              Te avisaremos cuando alguien se una a tu partido o haya cambios.
-            </p>
+          <div className="flex flex-col items-center gap-5 pt-12 text-center">
+            <div className="w-20 h-20 bg-accent-yellow border-2 border-black rounded-[20px] shadow-brutal flex items-center justify-center text-4xl">
+              🔔
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <p className="font-display font-bold text-[16px] text-brutal-black">Todo tranquilo</p>
+              <p className="font-body text-[13px] text-gray-400 max-w-[240px]">
+                Te avisaremos cuando alguien se una a tu partido o haya cambios.
+              </p>
+            </div>
           </div>
         )}
 

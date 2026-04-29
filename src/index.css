@@ -13,6 +13,15 @@
   }
 }
 
+@layer utilities {
+  .pb-safe {
+    padding-bottom: max(21px, env(safe-area-inset-bottom));
+  }
+  .pb-safe-20 {
+    padding-bottom: max(80px, calc(80px + env(safe-area-inset-bottom)));
+  }
+}
+
 @layer components {
   /* Contenedor mobile-first centrado */
   .app-container {

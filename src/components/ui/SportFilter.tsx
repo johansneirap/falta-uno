@@ -23,7 +23,7 @@ export default function SportFilter({ value, onChange }: SportFilterProps) {
             transition-all active:shadow-none active:translate-x-[2px] active:translate-y-[2px]
             ${value === tab.value
               ? 'bg-primary shadow-brutal-sm'
-              : 'bg-white shadow-brutal-sm hover:bg-cream'
+              : 'bg-accent-blue shadow-brutal-sm hover:bg-accent-blue/70'
             }
           `}
         >

@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import { useProfile } from '../hooks/useProfile'
+import { useAchievements } from '../hooks/useAchievements'
 import { usePlayerRequests } from '../hooks/usePlayerRequests'
 import Avatar from '../components/ui/Avatar'
 import { supabase } from '../lib/supabase'
@@ -24,9 +26,12 @@ const SPORTS_OPTIONS: { value: Sport; label: string }[] = [
 ]
 
 export default function Profile() {
+  const navigate = useNavigate()
   const { user, signOut } = useAuth()
   const { profile, stats, loading, fetchProfile, upsertProfile } = useProfile()
   const { createPlayerRequest, deactivateRequest } = usePlayerRequests()
+  const { achievements } = useAchievements(user?.id)
+  const unlockedCount = achievements.filter(a => a.unlocked).length
 
   // Onboarding / edit mode
   const [editMode, setEditMode] = useState(false)
@@ -319,6 +324,18 @@ export default function Profile() {
           </div>
         ))}
       </div>
+
+      {/* Logros */}
+      <button
+        onClick={() => navigate('/logros')}
+        className="w-full flex items-center justify-between bg-white border-2 border-black rounded-[12px]
+                   shadow-brutal px-4 py-3 transition-all active:shadow-none active:translate-x-[4px] active:translate-y-[4px]"
+      >
+        <span className="font-display font-bold text-[14px] text-brutal-black">🏆 Logros</span>
+        <span className="font-display font-bold text-[13px] text-brutal-black border-2 border-black rounded-full px-3 py-0.5 bg-cream">
+          {unlockedCount} / {achievements.length}
+        </span>
+      </button>
 
       {/* Score de credibilidad */}
       {(profile?.reputation_score ?? 0) > 0 && (

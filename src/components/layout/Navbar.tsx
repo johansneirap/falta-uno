@@ -18,7 +18,7 @@ const NAV_ITEMS: NavItem[] = [
 export default function Navbar({ unreadCount = 0 }: { unreadCount?: number }) {
   return (
     <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[480px] z-50
-                    flex justify-center px-[21px] pt-3 pb-[21px] bg-cream">
+                    flex justify-center px-[21px] pt-3 pb-safe bg-cream">
       <div className="w-full h-[62px] bg-white border-2 border-black rounded-[36px]
                       shadow-[3px_3px_0px_0px_#000000] flex p-1">
         {NAV_ITEMS.map(({ to, label, icon: Icon }) => (

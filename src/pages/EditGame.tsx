@@ -85,7 +85,7 @@ export default function EditGame() {
 
   if (loading) {
     return (
-      <div className="app-container flex items-center justify-center min-h-screen bg-cream">
+      <div className="app-container flex items-center justify-center min-h-dvh bg-cream">
         <svg className="animate-spin text-primary" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
           <path d="M12 2a10 10 0 0 1 10 10" strokeLinecap="round" />
         </svg>
@@ -96,7 +96,7 @@ export default function EditGame() {
   if (!game) return null
 
   return (
-    <div className="app-container flex flex-col bg-cream min-h-screen">
+    <div className="app-container flex flex-col bg-cream min-h-dvh">
       {/* Header */}
       <div className="flex items-center gap-3 px-5 pt-5 pb-3">
         <button

@@ -12,6 +12,8 @@ import EditGame from './pages/EditGame'
 import Players from './pages/Players'
 import Notifications from './pages/Notifications'
 import Profile from './pages/Profile'
+import Achievements from './pages/Achievements'
+import NotFound from './pages/NotFound'
 
 function AppRoutes() {
   const { user, loading: authLoading } = useAuth()
@@ -40,7 +42,7 @@ function AppRoutes() {
 
   if (authLoading || profileLoading) {
     return (
-      <div className="app-container flex items-center justify-center min-h-screen bg-cream">
+      <div className="app-container flex items-center justify-center min-h-dvh bg-cream">
         <svg className="animate-spin text-primary" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
           <path d="M12 2a10 10 0 0 1 10 10" strokeLinecap="round" />
         </svg>
@@ -81,7 +83,8 @@ function AppRoutes() {
       <Route path="/jugadores" element={<Layout><Players /></Layout>} />
       <Route path="/notificaciones" element={<Layout><Notifications /></Layout>} />
       <Route path="/perfil" element={<Layout><Profile /></Layout>} />
-      <Route path="*" element={<Navigate to="/" replace />} />
+      <Route path="/logros" element={<Achievements />} />
+      <Route path="*" element={<NotFound />} />
     </Routes>
   )
 }

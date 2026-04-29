@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { usePlayerRequests } from '../hooks/usePlayerRequests'
 import PlayerCard from '../components/player/PlayerCard'
 import type { Sport, Level } from '../lib/constants'
@@ -18,6 +19,7 @@ const SPORT_TABS: { value: SportFilter; label: string }[] = [
 
 export default function Players() {
   const { requests, loading, fetchPlayerRequests } = usePlayerRequests()
+  const navigate = useNavigate()
   const [sport, setSport] = useState<SportFilter>('todos')
   const [level, setLevel] = useState<LevelFilter>('todos')
   const [search, setSearch] = useState('')
@@ -145,15 +147,25 @@ export default function Players() {
         )}
 
         {!loading && displayList.length === 0 && (
-          <div className="flex flex-col items-center gap-3 pt-16 text-center">
-            <span className="text-5xl">🙋</span>
-            <p className="font-display font-bold text-[16px] text-brutal-black">
-              {search ? 'Sin resultados para esa búsqueda' : 'No hay jugadores disponibles'}
-            </p>
-            {!search && (
-              <p className="font-body text-[13px] text-gray-400">
-                Publica tu disponibilidad desde tu perfil
+          <div className="flex flex-col items-center gap-5 pt-12 text-center">
+            <div className="w-20 h-20 bg-accent-lilac border-2 border-black rounded-[20px] shadow-brutal flex items-center justify-center text-4xl">
+              🙋
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <p className="font-display font-bold text-[16px] text-brutal-black">
+                {search ? 'Sin resultados' : 'Nadie disponible aún'}
               </p>
+              <p className="font-body text-[13px] text-gray-400">
+                {search ? 'Prueba con otro deporte o nivel' : 'Publica tu disponibilidad y aparece aquí'}
+              </p>
+            </div>
+            {!search && (
+              <button
+                onClick={() => navigate('/perfil')}
+                className="btn bg-secondary px-5 py-2.5 text-[13px] text-black"
+              >
+                Publicar disponibilidad
+              </button>
             )}
           </div>
         )}
